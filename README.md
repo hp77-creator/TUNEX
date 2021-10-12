@@ -1,10 +1,16 @@
 # TUNEX
 
+**Note**: This project was a collective team effort, Models and other data collection were done with other team members working on TUNEX.
+However, the main aim of this repo is to create clean and simple implementation of the whole project
+
+Link to [Drishti Version](https://github.com/arjunparmar/TUNEX)
+
 ⇥To build a deploy-able system that detects our emotions at real time using webcam feed and smartly classifies one’s playlist into genres, at last playing a song that suits the current emotion and behavior of the person, as specified by the facial analysis.
 
-![Image](https://github.com/arjunparmar/TUNEX/blob/main/Screenshot_2021-03-12%20TUNEX.png)
+![Image](images/banner.png)
 ## Timeline
-
+<details>
+<summary>Timeline followed for the project</summary>
 | Date | Task |
 |---|---|
 |11-10| Project Assigned and Groups formed on Communication Channel |
@@ -17,6 +23,7 @@
 | 22-11 | Face Detection using Harcascade|
 | 29-11 | Dataset augmented and finalised|
 | 22-12 | Model Training |
+</details>
 
 ## Emotions
 

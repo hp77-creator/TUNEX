@@ -1,19 +1,13 @@
 .ipynb_checkpoints
 model_trained
-images
-*.jpeg
-*.JPG
 *.pickle
 genres_original
 images_original
-*.png
-*.csv
 .vscode
 __pycache__
 *.zip
 
 # model folder
-6/
 
 # songs folder
 songs/
