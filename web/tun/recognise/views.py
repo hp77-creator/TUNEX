@@ -9,6 +9,7 @@ from django.http import StreamingHttpResponse
 from .form import ImageForm
 from .models import Image
 from .camera import VideoCamera
+from .constants import IMG_SIZE, EMOTIONS, HF_PATH, BASE_URL, MARKET, SA, SA_D, ST, ST_D, TOKEN, HEADER
 
 # Standard Libraries
 import os
@@ -26,44 +27,6 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 
-#Constants
-IMG_SIZE = 48
-EMOTIONS = ["afraid", "angry", "disgust", "happy", "neutral", "sad", "surprised"]
-
-HF_PATH = 'haarcascade_frontalface_default.xml'
-BASE_URL = "https://api.spotify.com/v1/recommendations"
-MARKET = "IN" #market from which songs are recommended
-SA = "4NHQUGzhtTLFvgF5SZesLK" #seed artist for spotify (this is not a constant will update as per the genre)
-SA_D = {"hiphop": "7dGJo4pcD2V6oG8kP0tJRR", # eminem
-        "rock": "31hrPUMBg96szrqNAb3oqP", # blacklite district
-        "country": "1UTPBmNbXNTittyMJrNkvw", # Blake Shelton
-        "pop": "5IH6FPUwQTxPSXurCrcIov", # alec benjamin
-        "metal": "2ye2Wgw4gimLv2eAKyk1NB", # metallica
-        "disco": "4tZwfgrHOc3mvqYlEYSvVi", # daft punk
-        "reggae": "6BH2lormtpjy3X9DyrGHVj", # bob marley
-        "jazz": "1Mxqyy3pSjf8kZZL4QVxS0", # frank sinatra
-        "bollywoodpop": "6CXEwIaXYfVJ84biCxqc9k", # vishal dadlani
-        "classical": "3WrFJ7ztbogyGnTHbHJFl2", # beatles
-        "blues": "3WrFJ7ztbogyGnTHbHJFl2", #B. B king
-        }
-ST = "0c6xIDDpzE81m2q797ordA" #seed track for spotify
-ST_D = {
-    "hiphop": "7MJQ9Nfxzh8LPZ9e9u68Fq",
-    "jazz": "0elmUoU7eMPwZX1Mw1MnQo",
-    "rock": "1DWiVxo482tHbgTWKHMWqg",
-    "metal": "1hKdDCpiI9mqz1jVHRKG0E",
-    "country": "0cB74Rrq9gKE5iUjwG9raA",
-    "reggae": "4dbaWokGcqEWvwTZDBbMD3",
-    "disco": "2cGxRwrMyEAp8dEbuZaVv6",
-    "pop": "1xQ6trAsedVPCdbtDAmk0c",
-    "classical": "7pKfPomDEeI4TPT6EOYjn9",
-    "blues": "3cg0dJfrQB66Qf2YthPb6G"
-}
-TOKEN = "BQBUBVI6ndX-R2t70WMCz3H1kjFNY7Pih0e9wg4kyjW-k-V3kHAlTIxxneT3CiM9-zXakDi9-qFk3YLkMspWbtWZ1NttlcZo6pvebJJZvMQMZkXovgHgenlqWADoLdkEZer_MFsgu3wV9fqFjvi4rNd7-x0IWYyYWyI"
-HEADER = {
-    "content-Type": "application/json"
-}
-HEADER["authorization"] = "Bearer "+TOKEN
 
 res = ""  #result that we will pass to the result page
 
@@ -99,27 +62,28 @@ def predict_image(image_array, name_image):
         img = image_array.copy()
         #print("img is {}".format(img))
         faces = HF.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
-        print("faces is {}".format(faces))
+        #print("faces is {}".format(faces))
         try:
-            print("Before faces")
+            #print("Before faces")
             faces = sorted(faces, reverse=True, key = lambda x: (x[2]-x[0]) *(x[3]-x[1]))[0]
-            print("After faces")
+            #print("After faces")
             (x,y,w,h)=faces
-            print("After coordinatese")  
+            #print("After coordinatese")  
             img = cv2.rectangle(img,(x,y),(x+w,y+h),(220,40,50),2)
-            print("Before roi")
+            #print("Before roi")
             roi = img[y:y+h, x:x+w]
-            print("Afer roi")
-            print('Image shape is {}'.format(img.shape))
+            #print("Afer roi")
+            #print('Image shape is {}'.format(img.shape))
             prediction = model.predict([prepare(roi)])
             
             preds = prediction[0]
-            print("prediction is {}".format(preds))
-            print("max index is {}".format(preds.argmax()))
+            #print("prediction is {}".format(preds))
+            # print("max index is {}".format(preds.argmax()))
             label = EMOTIONS[preds.argmax()]
-            print("label is {}".format(label))
+            # print("label is {}".format(label))
             cv2.rectangle(img,(x,y+h+10),(x+w,y+h+70),(220,40,50),-2)
             cv2.putText(img,label, (x+10, y+h+50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (225, 225, 225), 3)
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             cv2.imwrite('result.jpeg', img)
         except Exception as e:
             print("Something happened during prediction")
@@ -294,30 +258,33 @@ def egmap(emotionout):
         genrechosen = random.choice(surprisedlist)
     print("genrechosen is {}".format(genrechosen))
     return genrechosen
-
-
-cam = VideoCamera()
-
+# def gen(camera):
+#     while True:
+#         frame = cam.get_frame()
+#         # print(frame)
+#         m_image, lab =predict_video(frame, "result")
+#         print("This is in gen")
+#         SA = SA_D[lab]
+#         ST = ST_D[lab]
+#         print(lab)
+#         # m_image = cv2.cvtColor(m_image, cv2.COLOR_RGB2BGR)
+#         ret, m_image = cv2.imencode('.jpg', m_image)
+#         m_image = m_image.tobytes()
+#         yield(b'--frame\r\n'
+#               b'Content-Type: image/jpeg\r\n\r\n' + m_image + b'\r\n\r\n')
 
 def gen(camera):
     while True:
-        frame = cam.get_frame()
-        # print(frame)
-        m_image, lab =predict_video(frame, "result")
-        print("This is in gen")
-        SA = SA_D[lab]
-        ST = ST_D[lab]
-        print(lab)
-        # m_image = cv2.cvtColor(m_image, cv2.COLOR_RGB2BGR)
-        ret, m_image = cv2.imencode('.jpg', m_image)
-        m_image = m_image.tobytes()
+        frame = camera.get_frame()
         yield(b'--frame\r\n'
-              b'Content-Type: image/jpeg\r\n\r\n' + m_image + b'\r\n\r\n')
+              b'Content-Type: image/jpeg\r\n\r\n' +
+              frame + b'\r\n\r\n'
+        )
 
 
 def livefeed(request):
     try:
-        return StreamingHttpResponse(gen(VideoCamera()), content_type="multipart/x-mixed-replace;boundary=frame")
+        return StreamingHttpResponse(gen(()), content_type="multipart/x-mixed-replace;boundary=frame")
     except Exception as e:  # This is bad! replace it with proper handling
         print(e)
 
