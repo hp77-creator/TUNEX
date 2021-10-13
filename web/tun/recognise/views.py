@@ -17,6 +17,7 @@ import threading
 import io
 import random
 import json
+import logging
 
 # 3rd party libraries
 import cv2
@@ -30,7 +31,7 @@ from tensorflow.keras.models import load_model
 
 res = ""  #result that we will pass to the result page
 
-
+logger = logging.getLogger(__name__)
 
 try:
 
@@ -57,7 +58,8 @@ def prepare(img):
 def predict_image(image_array, name_image):
     label="Nothing predicted"
     try:
-        print('Inside predict_image shape: {}'.format(image_array.shape))
+        #print('Inside predict_image shape: {}'.format(image_array.shape))
+        logger.info(f"Inside predict_image shape: {image_array.shape}")
         gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
         img = image_array.copy()
         #print("img is {}".format(img))
@@ -65,32 +67,41 @@ def predict_image(image_array, name_image):
         #print("faces is {}".format(faces))
         try:
             #print("Before faces")
+            logger.debug("Before faces")
             faces = sorted(faces, reverse=True, key = lambda x: (x[2]-x[0]) *(x[3]-x[1]))[0]
             #print("After faces")
+            logger.debug("After faces")
             (x,y,w,h)=faces
             #print("After coordinatese")  
+            logger.debug("Afer co-ordinates are found out")
             img = cv2.rectangle(img,(x,y),(x+w,y+h),(220,40,50),2)
             #print("Before roi")
+            logger.debug("Before roi is extracted")
             roi = img[y:y+h, x:x+w]
             #print("Afer roi")
+            logger.debug("After roi is extracted")
             #print('Image shape is {}'.format(img.shape))
+            logger.info(f"Image shape is {img.shape}")
             prediction = model.predict([prepare(roi)])
             
             preds = prediction[0]
+            logger.info(f"prediction is {preds} \n max index is {preds.argmax()}")
             #print("prediction is {}".format(preds))
             # print("max index is {}".format(preds.argmax()))
             label = EMOTIONS[preds.argmax()]
             # print("label is {}".format(label))
+            logger.info(f"label is {label}")
             cv2.rectangle(img,(x,y+h+10),(x+w,y+h+70),(220,40,50),-2)
             cv2.putText(img,label, (x+10, y+h+50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (225, 225, 225), 3)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             cv2.imwrite('result.jpeg', img)
         except Exception as e:
-            print("Something happened during prediction")
-            print(e)
+            #print("Something happened during prediction")
+            logger.error("Error {e}")
+            #print(e)
 
         
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        #img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         
         _, buffer_img = cv2.imencode('.jpeg', img)
         f_img = buffer_img.tobytes()
@@ -98,7 +109,8 @@ def predict_image(image_array, name_image):
         image_file = File(f1, name=name_image)
         return image_file, label
     except Exception as e:
-        print(e)
+        logger.error(f"Error: {e}")
+        #print(e)
 
 def predict_video(image_array, name_image):
     label="Nothing predicted"
@@ -161,7 +173,8 @@ def process_json(json):
     for entry in json:
         #print("entry is {}".format(entry))
         #print("keys of album are {}".format(entry.keys()))
-        print(entry["artists"][0].keys())
+        #print(entry["artists"][0].keys())
+        logger.info(f"{entry['artists'][0].keys()}")
         if entry["preview_url"] != None: 
             artists_l.append(entry["artists"][0]["name"])
             songs.append(entry["name"])
@@ -169,12 +182,14 @@ def process_json(json):
             s_images.append(entry["album"]["images"][0]["url"])
             inde.append(counter)
             counter = counter + 1
-    print("artists are {} songs are {} and urls are {}".format(artists_l, songs, urls))
+    #print("artists are {} songs are {} and urls are {}".format(artists_l, songs, urls))
+    logger.info(f"artists are {artists_l} \n songs are {songs} and urls are {urls}")
     return zip(inde, artists_l, songs, urls, s_images)
 
         
 
 def form(request):
+    global SA
     modified_image = Image()
     result_dic = {}
     genre=""
@@ -184,47 +199,59 @@ def form(request):
         form=ImageForm(data=request.POST, files=request.FILES)
         if form.is_valid():
             form.save()
-            print("Image saved")
+            #print("Image saved")
+            logger.debug("Image saved")
             obj=form.instance
-            print("obj is {}".format(obj))
-            print("returning just obj")
+            #print("obj is {}".format(obj))
+            logger.info(f"obj is {obj}")
+            #print("returning just obj")
             name_image= obj.image.name
             test_image = obj.image
            # image_bytes = test_image.reads()
             target_image = PIL.Image.open(str(settings.BASE_DIR) + obj.image.url)
             #target_image = target_image.resize((IMG_SIZE, IMG_SIZE), PIL.Image.ANTIALIAS)
-            print(type(target_image))
+            #print(type(target_image))
+            logger.info(f"{type(target_image)}")
             image_array = np.array(target_image)
             image_file, x1 = predict_image(image_array, name_image)
-            print('Image_file type: {}'.format(type(image_file)))
+            #print('Image_file type: {}'.format(type(image_file)))
+            logger.info(f"Image file type: {type(image_file)}")
             modified_image.image = image_file
-            print("next step")
+            #print("next step")
+            logger.debug("next step")
             modified_image.save()
             genre = egmap(x1)
-            print("genre is {}".format(genre))
+            #print("genre is {}".format(genre))
+            logger.info(f"genre is {genre}")
             if genre != '':
                 SA = SA_D[genre]
                 ST = ST_D[genre]
             url = BASE_URL+'?limit=14&market='+MARKET+'&seed_artists='+SA+'&seed_genres='+genre+'&seed_tracks='+ST
             r = rq.get(url, headers=HEADER)
-            print(r.status_code)
-            if r.json():
+            #print(r.status_code)
+            logger.info(f"{r.status_code}")
+
+            if r.json() and r.status_code == 200:
                 json_text = json.loads(r.text)
                 # print(json_text)
                 result_dic = process_json(json_text["tracks"])
             else:
-                print("Bad Request")
+                #print("Bad Request")
+                logger.warning("Bad Request")
             
-            print("result is {}".format(result_dic))
+            #print("result is {}".format(result_dic))
+            logger.info(f"result is {result_dic}")
 
             return render(request, "predict.html", {"obj":obj, "prediction":x1, "modified_image":modified_image, "result_dic": result_dic})
         
     
     else:
         form = ImageForm()
-        print("It came into else")
+        #print("It came into else")
+        logger.debug("It came into else")
         img = Image.objects.last()
-        print("Image is {}".format(img))
+        #print("Image is {}".format(img))
+        logger.info(f"Image is {img}")
 
     return render(request, "predict.html", {"img":img,"form":form})
 
