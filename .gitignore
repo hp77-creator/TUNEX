@@ -6,7 +6,7 @@ images_original
 .vscode
 __pycache__
 *.zip
-.DS_Store
+.DS_Storeo
 
 # model folder
 
