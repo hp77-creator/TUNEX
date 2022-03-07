@@ -1,17 +1,9 @@
 FROM python:3.8
-
-RUN dpkg --add-architecture i386 && apt update
-RUN apt-get clean
-RUN apt install -y libgl1-mesa-dev
-
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
+RUN dpkg --add-architecture i386 && apt update && apt-get clean && apt install -y libgl1-mesa-dev && pip install --upgrade pip
 WORKDIR /app
-
-COPY . /app
-
+COPY requirements.txt /app/
 RUN pip --no-cache-dir install -r requirements.txt
+COPY . /app/
 
-EXPOSE 8000
-
-ENTRYPOINT ["python"]
-
-CMD ["manage.py", "runserver"]
