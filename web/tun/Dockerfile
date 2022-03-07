@@ -1,15 +1,17 @@
-FROM python:3.8-buster
+FROM python:3.8
 
-ENV PIP_REQUIRE_VIRTUALENV false
+RUN dpkg --add-architecture i386 && apt update
+RUN apt-get clean
+RUN apt install -y libgl1-mesa-dev
 
-RUN apt-get -y update && apt-get -y install libgl1-mesa-glx ffmpeg libsm6 libxext6
-ADD requirements.txt /requirements.txt
-ADD 6 /6
-ADD recognise /recognise
-ADD templates /templates
-ADD tun /tun
-ADD manage.py /manage.py
-RUN pip install -r requirements.txt
-RUN python manage.py migrate
+WORKDIR /app
+
+COPY . /app
+
+RUN pip --no-cache-dir install -r requirements.txt
+
 EXPOSE 8000
-RUN python manage.py runserver 0.0.0.0:8000
+
+ENTRYPOINT ["python"]
+
+CMD ["manage.py", "runserver"]
