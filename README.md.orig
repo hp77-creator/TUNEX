@@ -7,8 +7,14 @@ Link to [Drishti Version](https://github.com/arjunparmar/TUNEX)
 
 ⇥To build a deploy-able system that detects our emotions at real time using webcam feed and smartly classifies one’s playlist into genres, at last playing a song that suits the current emotion and behavior of the person, as specified by the facial analysis.
 
+<<<<<<< HEAD
 ![](https://tenor.com/bexsH.gif)
+=======
+![](https://tenor.com/view/new-brand-new-brand-spanking-new-original-fresh-gif-15819209)
+>>>>>>> 0085211f12a24396d3bd1cd9431ee05bd90d7656
 Available on Docker, now you can go and install the app directly from [dockerhub](./Install.md)
+
+
 ![Image](images/banner.png)
 ## Timeline
 <details>
