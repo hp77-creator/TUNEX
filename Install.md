@@ -1,3 +1,13 @@
+## Docker
+
+```bash
+docker pull hp77creator/tunex_v1:latest
+```
+
+
+
+## Git
+
 - fork/clone this project by clicking on the respective button
 - clone the repo locally using:
 ```bash
