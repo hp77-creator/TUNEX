@@ -2,45 +2,162 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="TUNEX - AI Facial Emotion Recognition & Spotify Music Recommendation Engine. Scan your facial mood and instantly listen to songs curated for your emotional state.">
+    <meta name="theme-color" content="#0B0F19">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous"> 
-    <!--Personal CSS files-->
-    <link rel="stylesheet" href="{% static 'styles/allstyle.css' %}">
-    {% block styles %} {% endblock %}
+    <title>{% block title %}TUNEX • Tunes for Expressions{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'icofont/icofont.min.css' %}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <title>
-      {% block title %} {% endblock %}
-    </title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <script type="text/javascript" src="{% static 'script/tunex.js' %}"> </script>
+    <!-- Global TUNEX Styles -->
+    <link rel="stylesheet" href="{% static 'styles/modern_tunex.css' %}">
+    
+    {% block styles %}{% endblock %}
   </head>
-  <body>
-     <div class="navbar" id="navbar">
-        <div class="navtext">
-            <a href="{% url 'home' %}" class="currentnav">HOME</a>
-            <a href="{% url 'form' %}">STATIC</a>
-            <a href="{% url 'showlive' %}">LIVE</a>
-            <a href="https://drishti-svnit.github.io/drishti/index.html">ABOUT</a>
+  <body class="tunex-app">
+
+    <!-- Ambient Glow Background Canvas -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Navigation Header -->
+    <header class="tunex-header">
+      <nav class="navbar navbar-expand-lg tunex-navbar" id="mainNavbar">
+        <div class="container-fluid px-lg-4">
+          <!-- Brand Logo -->
+          <a class="navbar-brand tunex-brand" href="{% url 'home' %}">
+            <div class="brand-equalizer">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <span class="brand-text">TUNE<span class="brand-highlight">X</span></span>
+          </a>
+
+          <!-- Mobile Toggle Button -->
+          <button class="navbar-toggler tunex-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#tunexNavMenu" aria-controls="tunexNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars text-light"></i>
+          </button>
+
+          <!-- Nav Links & Spotify Status -->
+          <div class="collapse navbar-collapse" id="tunexNavMenu">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 tunex-nav-links">
+              <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' or request.path == '/home/' %}active{% endif %}" href="{% url 'home' %}">
+                  <i class="fa-solid fa-compass me-1"></i> Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if 'live' in request.path %}active{% endif %}" href="{% url 'showlive' %}">
+                  <i class="fa-solid fa-video me-1"></i> Live Scanner
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if 'upload' in request.path or 'form' in request.path %}active{% endif %}" href="{% url 'form' %}">
+                  <i class="fa-solid fa-cloud-arrow-up me-1"></i> Photo Upload
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if 'recommendations' in request.path or 'liveres' in request.path %}active{% endif %}" href="{% url 'liveres' %}">
+                  <i class="fa-solid fa-music me-1"></i> Recommendations
+                </a>
+              </li>
+            </ul>
+
+            <!-- Spotify Account Status Badge / Connect Button -->
+            <div class="d-flex align-items-center gap-3 tunex-nav-actions">
+              {% if spotify_linked %}
+                <div class="dropdown">
+                  <button class="btn btn-spotify-connected dropdown-toggle d-flex align-items-center gap-2" type="button" id="spotifyUserMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if spotify_user.avatar %}
+                      <img src="{{ spotify_user.avatar }}" alt="Spotify Avatar" class="spotify-avatar">
+                    {% else %}
+                      <i class="fa-brands fa-spotify text-success fs-5"></i>
+                    {% endif %}
+                    <span class="user-name text-truncate" style="max-width: 140px;">{{ spotify_user.display_name|default:"Spotify Linked" }}</span>
+                    <span class="status-indicator"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end tunex-dropdown" aria-labelledby="spotifyUserMenu">
+                    <li class="px-3 py-2 border-bottom border-secondary border-opacity-25">
+                      <div class="small text-muted">Connected Account</div>
+                      <div class="fw-bold text-light">{{ spotify_user.display_name|default:"Spotify User" }}</div>
+                      {% if spotify_user.product %}
+                        <span class="badge bg-success-subtle text-success border border-success border-opacity-25 mt-1">{{ spotify_user.product|upper }}</span>
+                      {% endif %}
+                    </li>
+                    {% if spotify_user.profile_url %}
+                      <li>
+                        <a class="dropdown-item py-2" href="{{ spotify_user.profile_url }}" target="_blank" rel="noopener">
+                          <i class="fa-solid fa-arrow-up-right-from-square me-2 text-muted"></i> View Spotify Profile
+                        </a>
+                      </li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                    <li>
+                      <a class="dropdown-item text-danger py-2" href="{% url 'spotify_disconnect' %}">
+                        <i class="fa-solid fa-right-from-bracket me-2"></i> Disconnect Spotify
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              {% else %}
+                <a href="{% url 'spotify_login' %}" class="btn btn-spotify d-flex align-items-center gap-2" title="Link your Spotify account to get music recommendations">
+                  <i class="fa-brands fa-spotify fs-5"></i>
+                  <span>Connect Spotify</span>
+                </a>
+              {% endif %}
+            </div>
+          </div>
         </div>
-    </div>
+      </nav>
+    </header>
 
-    {% block content %}
-    {% endblock %}
-    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Global Toast & Flash Messages -->
+    <main class="tunex-main-content">
+      <div class="container-xl pt-3">
+        {% if messages %}
+          <div class="messages-container mb-4">
+            {% for message in messages %}
+              <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show tunex-alert" role="alert">
+                <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
 
-    <!-- Option 1: Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+        {% block content %}
+        {% endblock %}
+      </div>
+    </main>
 
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.6.0/dist/umd/popper.min.js" integrity="sha384-KsvD1yqQ1/1+IA7gi3P0tyJcT3vR+NdBTt13hSJ2lnve8agRGXTTyNaBYmCR/Nwi" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
-    -->
+    <!-- Footer -->
+    <footer class="tunex-footer text-center py-4 mt-5">
+      <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 text-muted small">
+          <div>
+            <span>TUNEX • Powered by Deep Learning & Spotify Web API</span>
+          </div>
+          <div>
+            <span>Developed with <i class="fa-solid fa-heart text-danger"></i> for DRISHTI</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block scripts %}{% endblock %}
   </body>
 </html>
