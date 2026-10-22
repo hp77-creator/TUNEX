@@ -15,15 +15,15 @@
           </div>
           <div>
             <h5 class="fw-bold mb-1 text-light">Spotify Account Required for Music Suggestions</h5>
-            <p class="text-muted small mb-0">
+            <p class="text-light opacity-85 small mb-0">
               You can still upload and analyze your facial emotion, but linking your Spotify account is required to generate personalized song recommendations.
             </p>
           </div>
         </div>
-        <a href="{% url 'spotify_login' %}" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap">
+        <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
           <i class="fa-brands fa-spotify fs-5"></i>
           <span>Link Spotify Account</span>
-        </a>
+        </button>
       </div>
     </div>
   {% endif %}
@@ -175,11 +175,11 @@
           <div class="text-center py-4 border border-secondary border-opacity-25 rounded-3" style="background: rgba(0, 0, 0, 0.25);">
             <i class="fa-brands fa-spotify text-success mb-2" style="font-size: 2.5rem;"></i>
             <h5 class="fw-bold text-light mb-1">Spotify Connection Required</h5>
-            <p class="text-muted small mb-3">Link your Spotify account to discover songs tuned specifically to your {{ result.emotion }} expression.</p>
-            <a href="{% url 'spotify_login' %}" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2">
+            <p class="text-light opacity-85 small mb-3">Link your Spotify account to discover songs tuned specifically to your {{ result.emotion }} expression.</p>
+            <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
               <i class="fa-brands fa-spotify fs-5"></i>
               <span>Link Spotify Account Now</span>
-            </a>
+            </button>
           </div>
         {% else %}
           <div class="text-center py-4 text-muted">

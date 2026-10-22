@@ -15,6 +15,8 @@ from .spotify_service import (
     disconnect_spotify,
     get_recommendations_for_emotion,
     EMOTION_AUDIO_PROFILES,
+    login_demo_user,
+    configure_spotify_credentials,
 )
 
 logger = logging.getLogger(__name__)
@@ -193,16 +195,48 @@ def api_get_recommendations(request):
 
 def spotify_login(request):
     """
-    Redirects user to Spotify Authorization page.
+    Redirects user to Spotify Authorization page or prompts setup modal if unconfigured.
     """
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/live/'
+    request.session['spotify_next_url'] = next_url
+
     auth_url = get_auth_url(request)
     if not auth_url:
-        messages.error(
-            request,
-            "Spotify credentials not configured. Please set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env"
-        )
-        return redirect('home')
+        delimiter = '&' if '?' in next_url else '?'
+        return redirect(f"{next_url}{delimiter}spotify_setup=1")
     return redirect(auth_url)
+
+
+def spotify_demo(request):
+    """
+    1-Click instant connection using Demo mode with full emotion-to-music playback.
+    """
+    user_profile = login_demo_user(request)
+    messages.success(request, f"Connected as {user_profile['display_name']}! Emotion-based Spotify recommendations are now unlocked.")
+
+    last_emotion = request.session.get('last_detected_emotion')
+    next_url = request.session.pop('spotify_next_url', None) or request.META.get('HTTP_REFERER') or '/live/'
+    if 'login' in next_url:
+        next_url = '/live/'
+    return redirect(next_url)
+
+
+def spotify_configure(request):
+    """
+    Accepts client_id and client_secret from UI modal and redirects to authorization.
+    """
+    if request.method == "POST":
+        client_id = request.POST.get("client_id", "").strip()
+        client_secret = request.POST.get("client_secret", "").strip()
+        if client_id and client_secret:
+            configure_spotify_credentials(client_id, client_secret)
+            auth_url = get_auth_url(request)
+            if auth_url:
+                return redirect(auth_url)
+            messages.error(request, "Could not generate Spotify authorization URL.")
+        else:
+            messages.error(request, "Both Client ID and Client Secret are required.")
+    return redirect(request.META.get('HTTP_REFERER') or 'home')
 
 
 def spotify_callback(request):

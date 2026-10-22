@@ -15,15 +15,15 @@
           </div>
           <div>
             <h5 class="fw-bold mb-1 text-light">Spotify Account Linking Required</h5>
-            <p class="text-muted small mb-0">
+            <p class="text-light opacity-85 small mb-0">
               To receive customized music recommendations tailored to your detected facial emotion, you must link your Spotify account first.
             </p>
           </div>
         </div>
-        <a href="{% url 'spotify_login' %}" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap">
+        <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
           <i class="fa-brands fa-spotify fs-5"></i>
           <span>Link Spotify Account</span>
-        </a>
+        </button>
       </div>
     </div>
   {% endif %}
@@ -36,9 +36,9 @@
           <span class="badge bg-danger rounded-pill px-2 py-1" id="cameraStatusBadge">
             <i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Inactive
           </span>
-          <span class="text-muted small">HTML5 In-Browser Video Stream</span>
+          <span class="text-light opacity-75 small">HTML5 In-Browser Video Stream</span>
         </div>
-        <div class="form-check form-switch text-muted small">
+        <div class="form-check form-switch text-light opacity-75 small">
           <input class="form-check-input" type="checkbox" id="autoScanSwitch">
           <label class="form-check-label" for="autoScanSwitch">Auto-Scan (2s)</label>
         </div>
@@ -57,12 +57,16 @@
         </div>
 
         <!-- Camera Off State Placeholder -->
-        <div class="position-absolute inset-0 d-flex flex-column align-items-center justify-content-center text-center p-4" id="cameraPlaceholder" style="background: rgba(11, 15, 25, 0.95); z-index: 5;">
-          <i class="fa-solid fa-video-slash text-muted mb-3" style="font-size: 3.5rem;"></i>
-          <h5 class="fw-bold text-light mb-1">Webcam is Inactive</h5>
-          <p class="text-muted small mb-3">Click below to allow camera access directly in your browser.</p>
-          <button class="btn btn-outline-success rounded-pill px-4" id="startCamBtn">
-            <i class="fa-solid fa-camera me-2"></i> Enable Camera
+        <div id="cameraPlaceholder">
+          <div class="p-3 rounded-circle bg-dark border border-success border-opacity-50 text-success mb-3" style="box-shadow: 0 0 30px rgba(29, 185, 84, 0.2);">
+            <i class="fa-solid fa-camera fs-1"></i>
+          </div>
+          <h4 class="fw-bold text-light mb-2">Webcam is Inactive</h4>
+          <p class="text-light opacity-85 small mb-4" style="max-width: 360px;">
+            Click below to allow camera access in your browser. All facial emotion analysis runs safely in real-time.
+          </p>
+          <button class="btn btn-tunex-primary px-4 py-2 fs-6" id="startCamBtn">
+            <i class="fa-solid fa-camera me-2"></i> Enable Webcam
           </button>
         </div>
       </div>
@@ -79,8 +83,8 @@
           </button>
         </div>
 
-        <div id="scanningStatusText" class="text-muted small d-flex align-items-center gap-2">
-          <span>Ready for facial capture</span>
+        <div id="scanningStatusText" class="text-light opacity-75 small d-flex align-items-center gap-2">
+          <span>Click 'Enable Webcam' to begin</span>
         </div>
       </div>
     </div>
@@ -91,14 +95,14 @@
     <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
       <div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="fw-bold mb-0">Emotion Metrics</h5>
+          <h5 class="fw-bold text-light mb-0">Emotion Metrics</h5>
           <span class="badge bg-secondary rounded-pill" id="faceDetectedBadge">No Face Yet</span>
         </div>
 
         <!-- Dominant Emotion Box -->
-        <div class="p-3 rounded-3 mb-4 text-center border border-secondary border-opacity-25" id="dominantEmotionBox" style="background: rgba(0, 0, 0, 0.3);">
-          <div class="text-muted small text-uppercase fw-bold mb-1">Dominant Emotion</div>
-          <h2 class="fw-bold mb-1 text-capitalize" id="dominantEmotionText">Waiting...</h2>
+        <div class="p-3 rounded-3 mb-4 text-center border border-secondary border-opacity-25" id="dominantEmotionBox" style="background: rgba(0, 0, 0, 0.35);">
+          <div class="text-uppercase fw-bold mb-1" style="color: #6EE7B7;">Dominant Emotion</div>
+          <h2 class="fw-bold mb-1 text-capitalize text-light" id="dominantEmotionText">Waiting...</h2>
           <div class="text-success fw-bold" id="confidenceScoreText">0.0% Confidence</div>
         </div>
 
@@ -107,8 +111,8 @@
           {% for emotion_key, data in emotions.items %}
             <div class="emotion-bar-wrapper">
               <div class="emotion-bar-header">
-                <span class="text-capitalize">{{ emotion_key }}</span>
-                <span id="probVal-{{ emotion_key }}">0%</span>
+                <span class="text-capitalize text-light fw-bold">{{ emotion_key }}</span>
+                <span id="probVal-{{ emotion_key }}" class="text-success fw-bold">0%</span>
               </div>
               <div class="emotion-progress">
                 <div class="emotion-progress-fill" id="probBar-{{ emotion_key }}" style="width: 0%; background-color: {{ data.color }};"></div>
@@ -126,10 +130,10 @@
             <span>Suggest Spotify Songs</span>
           </button>
         {% else %}
-          <a href="{% url 'spotify_login' %}" class="btn btn-spotify w-100 justify-content-center py-2">
+          <button type="button" class="btn btn-spotify w-100 justify-content-center py-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
             <i class="fa-brands fa-spotify fs-5 me-2"></i>
             <span>Link Spotify Account First</span>
-          </a>
+          </button>
         {% endif %}
       </div>
     </div>

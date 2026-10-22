@@ -110,10 +110,10 @@
                   </ul>
                 </div>
               {% else %}
-                <a href="{% url 'spotify_login' %}" class="btn btn-spotify d-flex align-items-center gap-2" title="Link your Spotify account to get music recommendations">
+                <button type="button" class="btn btn-spotify d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal" title="Link your Spotify account to get music recommendations">
                   <i class="fa-brands fa-spotify fs-5"></i>
                   <span>Connect Spotify</span>
-                </a>
+                </button>
               {% endif %}
             </div>
           </div>
@@ -141,6 +141,81 @@
       </div>
     </main>
 
+    <!-- Spotify Connect & Configuration Modal -->
+    <div class="modal fade tunex-modal" id="spotifyConnectModal" tabindex="-1" aria-labelledby="spotifyConnectModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-secondary border-opacity-25 pb-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-brands fa-spotify text-success fs-3"></i>
+              <h5 class="modal-title fw-bold text-light mb-0" id="spotifyConnectModalLabel">Link Spotify Account</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <!-- Option 1: Instant Demo Mode (1-Click) -->
+            <div class="p-3 mb-4 rounded-3 border border-success border-opacity-50" style="background: rgba(29, 185, 84, 0.08);">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-success-subtle text-success border border-success border-opacity-25 text-uppercase fw-bold">Instant 1-Click</span>
+                <span class="text-success small fw-bold"><i class="fa-solid fa-bolt me-1"></i> Ready to Explore</span>
+              </div>
+              <h6 class="fw-bold text-light mb-1">Explore TUNEX in Demo Mode</h6>
+              <p class="text-muted small mb-3">
+                Experience the full face-to-music pipeline instantly with curated Spotify playlists for each of the 7 emotions — no API keys required!
+              </p>
+              <a href="{% url 'spotify_demo' %}" class="btn btn-spotify w-100 justify-content-center py-2">
+                <i class="fa-solid fa-play me-2"></i>
+                <span>Connect with Demo Account (Instant)</span>
+              </a>
+            </div>
+
+            <!-- Divider -->
+            <div class="d-flex align-items-center my-4 text-muted small">
+              <div class="flex-grow-1 border-top border-secondary border-opacity-25"></div>
+              <span class="px-3 text-uppercase fw-bold" style="font-size: 0.75rem;">Or Connect Real Spotify Developer App</span>
+              <div class="flex-grow-1 border-top border-secondary border-opacity-25"></div>
+            </div>
+
+            <!-- Option 2: Real Spotify OAuth Login / Configuration -->
+            {% if spotify_configured %}
+              <div class="text-center p-3 rounded-3 border border-secondary border-opacity-25" style="background: rgba(0, 0, 0, 0.25);">
+                <p class="text-light small mb-3">
+                  Your Spotify Developer application is configured. Click below to authorize with your personal Spotify account.
+                </p>
+                <a href="{% url 'spotify_login' %}" class="btn btn-outline-success rounded-pill px-4 py-2 fw-bold">
+                  <i class="fa-brands fa-spotify fs-5 me-2"></i> Log In via Spotify OAuth2 &rarr;
+                </a>
+              </div>
+            {% else %}
+              <div class="p-3 rounded-3 border border-secondary border-opacity-25" style="background: rgba(0, 0, 0, 0.25);">
+                <h6 class="fw-bold text-light mb-2">Configure Spotify API Credentials</h6>
+                <p class="text-muted small mb-3">
+                  To authenticate personal Spotify accounts, enter your Client ID & Secret from <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener" class="text-success text-decoration-none fw-bold">developer.spotify.com</a>:
+                </p>
+                <form action="{% url 'spotify_configure' %}" method="post">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <label class="form-label small text-light fw-bold">Spotify Client ID</label>
+                    <input type="text" name="client_id" class="form-control form-control-sm" placeholder="Paste your Spotify Client ID here" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small text-light fw-bold">Spotify Client Secret</label>
+                    <input type="password" name="client_secret" class="form-control form-control-sm" placeholder="Paste your Spotify Client Secret here" required>
+                  </div>
+                  <div class="text-muted smaller mb-3" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-info text-info me-1"></i> Make sure redirect URI <code>http://127.0.0.1:8000/spotify/callback/</code> is added in your Spotify App settings.
+                  </div>
+                  <button type="submit" class="btn btn-tunex-primary w-100 justify-content-center py-2">
+                    <i class="fa-solid fa-floppy-disk me-2"></i> Save & Log in with Spotify
+                  </button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="tunex-footer text-center py-4 mt-5">
       <div class="container">
@@ -158,6 +233,19 @@
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <script>
+      // Auto-open Spotify Setup modal if requested in URL
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('spotify_setup') === '1') {
+          const modalElem = document.getElementById('spotifyConnectModal');
+          if (modalElem) {
+            const modal = new bootstrap.Modal(modalElem);
+            modal.show();
+          }
+        }
+      });
+    </script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

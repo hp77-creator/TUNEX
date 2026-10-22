@@ -110,3 +110,17 @@ class ViewTests(TestCase):
         response = self.client.get(reverse('spotify_disconnect'))
         self.assertRedirects(response, reverse('home'))
         self.assertNotIn('spotify_auth', self.client.session)
+
+    def test_spotify_demo_login(self):
+        """GET /spotify/demo/ should establish an active demo session."""
+        response = self.client.get(reverse('spotify_demo'))
+        self.assertIn('spotify_auth', self.client.session)
+        self.assertTrue(self.client.session['spotify_auth']['is_demo'])
+        self.assertEqual(self.client.session['spotify_auth']['user']['id'], 'tunex_demo_user')
+
+    def test_spotify_login_unconfigured_redirects_with_setup(self):
+        """When Spotify is unconfigured, visiting /spotify/login/ should redirect with ?spotify_setup=1."""
+        response = self.client.get(reverse('spotify_login'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("spotify_setup=1", response.url)
+

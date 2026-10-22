@@ -18,6 +18,8 @@ urlpatterns = [
 
     # Spotify OAuth2
     path('spotify/login/', views.spotify_login, name="spotify_login"),
+    path('spotify/demo/', views.spotify_demo, name="spotify_demo"),
+    path('spotify/configure/', views.spotify_configure, name="spotify_configure"),
     path('spotify/callback/', views.spotify_callback, name="spotify_callback"),
     path('spotify/disconnect/', views.spotify_disconnect, name="spotify_disconnect"),
 ]

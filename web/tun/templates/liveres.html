@@ -13,13 +13,13 @@
           <i class="fa-brands fa-spotify" style="font-size: 3.5rem;"></i>
         </div>
         <h3 class="fw-bold text-light mb-2">Connect Your Spotify Account</h3>
-        <p class="text-muted mx-auto mb-4" style="max-width: 580px;">
+        <p class="text-light opacity-85 mx-auto mb-4" style="max-width: 580px;">
           TUNEX generates customized song recommendations based on your detected mood by linking directly with your Spotify account. Connect once to stream recommendations tailored to your emotion.
         </p>
-        <a href="{% url 'spotify_login' %}" class="btn-spotify px-4 py-2 fs-6 d-inline-flex align-items-center gap-2">
+        <button type="button" class="btn-spotify px-4 py-2 fs-6 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
           <i class="fa-brands fa-spotify fs-5"></i>
           <span>Link Spotify Account Now</span>
-        </a>
+        </button>
       </div>
     </div>
 

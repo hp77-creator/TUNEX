@@ -568,20 +568,134 @@ body.tunex-app {
   overflow: hidden;
 }
 
-/* Spotify Connect Banner Modal / Alert */
+/* ==========================================================================
+   High-Contrast Typography & Text Overrides
+   ========================================================================== */
+.text-muted, .text-secondary {
+  color: #CBD5E1 !important; /* Slate-300: crisp, high contrast readable */
+}
+
+.text-dim {
+  color: #94A3B8 !important;
+}
+
+.text-light {
+  color: #F8FAFC !important;
+}
+
 .spotify-connect-banner {
-  background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, rgba(18, 25, 41, 0.9) 100%);
-  border: 1px solid rgba(29, 185, 84, 0.4);
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.18) 0%, rgba(18, 25, 41, 0.95) 100%);
+  border: 1px solid rgba(29, 185, 84, 0.5);
   border-radius: 16px;
   padding: 1.75rem;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
+.spotify-connect-banner h5 {
+  color: #FFFFFF !important;
+  font-weight: 700;
+}
+
+.spotify-connect-banner p {
+  color: #E2E8F0 !important; /* Bright silver readable text */
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Camera Placeholder Absolute Positioning Fix */
+#cameraPlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 13, 22, 0.94);
+  z-index: 10;
+  text-align: center;
+  padding: 2rem;
+}
+
+#cameraPlaceholder h5 {
+  color: #FFFFFF !important;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+#cameraPlaceholder p {
+  color: #E2E8F0 !important;
+  font-size: 0.95rem;
+}
+
+/* Emotion Metrics Contrast */
+.emotion-bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+  color: #F1F5F9 !important;
+  font-weight: 600;
+}
+
+.emotion-bar-header span:first-child {
+  color: #F1F5F9 !important;
+}
+
+.emotion-bar-header span:last-child {
+  color: #A7F3D0 !important;
+  font-weight: 700;
+}
+
+#dominantEmotionBox .text-uppercase {
+  color: #A7F3D0 !important;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+#dominantEmotionText {
+  color: #FFFFFF !important;
+}
+
 /* Alerts */
 .tunex-alert {
-  background: rgba(18, 25, 41, 0.9);
+  background: rgba(18, 25, 41, 0.95);
   border: 1px solid var(--border-glass);
   color: #FFFFFF;
   border-radius: 12px;
   backdrop-filter: blur(12px);
 }
+
+/* Modal Styling */
+.tunex-modal .modal-content {
+  background: #0F172A;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  color: #F8FAFC;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.tunex-modal .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tunex-modal .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tunex-modal .form-control {
+  background: #090D16;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  border-radius: 8px;
+}
+
+.tunex-modal .form-control:focus {
+  border-color: var(--spotify-green);
+  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.25);
+  background: #090D16;
+  color: #FFFFFF;
+}
+
