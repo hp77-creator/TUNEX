@@ -4,28 +4,33 @@ model_trained
 genres_original
 images_original
 .vscode
+.idea
 __pycache__
+*.py[cod]
 *.zip
-.DS_Storeo
+.DS_Store
+.DS_Store?
+._*
 
-# model folder
+# Environment and secrets
+.env
+.env.local
 
-# img folder
+# Image and media folders
 up_img
+media/
 result.jpeg
 
-# songs folder
-songs/
-
-# virtualenv
+# Virtual environments
+venv/
+.venv/
 **/site-packages/
 **/bin
-venv
 
-# swap files
+# Swap files
 *.swp
 
-
 # Databases
+*.sqlite3
+db.sqlite3
 
-**.sqlite3

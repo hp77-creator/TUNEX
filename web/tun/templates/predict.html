@@ -1,161 +1,193 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-    Static TUNEX
-{% endblock %}
-
-{% block styles %}
-<style>
-    body{
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-    .spotify-songs{
-        height:100vh;
-        width: 100%;
-    }
-    .spotify-songs-title{
-        height:22vh;
-        width:100%;
-        padding-left: 5%;
-        padding-top: 6vh;
-        background-color: rgb(10, 24, 30);
-    }
-    .spotify-songs-title span{
-        font-family: sans-serif;
-        font-size: 6vh;
-        font-weight:bold;
-        color: rgb(251, 252, 255);
-    }
-    .all-song-cards{
-        height:55vh;
-        width: 90%;
-        margin-left: 5%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .single-card{
-        width: 16%;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        margin-right: 3%;
-        border-radius: 10px;
-    }
-    .song-art img{
-        width: 100%;
-        height: auto;
-        border-radius: 10px 10px 0 0;
-    }
-    .song-name{
-        height: 6vh;
-        text-align: center;
-        padding: 6% 7% 2% 7%;
-        font-size: 2.5vh;
-        font-weight:bold;
-        overflow-y: hidden;
-    }
-    .song-artist{
-        text-align: center;
-        padding: 1% 8% 4% 8%;
-        font-size: 1.8vh;
-        color: gray;
-    }
-    audio{
-        width: 100%;
-
-    }
-</style>
-    <link rel="stylesheet" href="{% static 'styles/homestyle.css' %}">
-{% endblock %}
+{% block title %}TUNEX • Photo Emotion Upload & Spotify Recommendations{% endblock %}
 
 {% block content %}
-
-<div class="container">
-        <form action="{% url 'form'%}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-        <div class="form-group">
-            {{ form }}
+<div class="row g-4 pt-2">
+  <!-- Top Banner: Spotify Warning if not linked -->
+  {% if not spotify_linked %}
+    <div class="col-12">
+      <div class="spotify-connect-banner d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-3 rounded-circle bg-dark border border-success border-opacity-50 text-success fs-3">
+            <i class="fa-brands fa-spotify"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-light">Spotify Account Required for Music Suggestions</h5>
+            <p class="text-light opacity-85 small mb-0">
+              You can still upload and analyze your facial emotion, but linking your Spotify account is required to generate personalized song recommendations.
+            </p>
+          </div>
         </div>
-        <div class="form-group">
-            {% if not obj %}
-        <button type="submit" class="btn btn-primary">Upload</button>
-            {% endif %}
-        </div>
-        </form>
-
-{% if obj %}
-<div class="text-center"> 
- <h3> Successfully Predicted </h3>
-<p>Predicted emotion is {{ prediction }}</p>
-<img src="{{ modified_image.image.url }}" alt="image" class="img-fluid">
-</div>
-</div>
-{% endif %}
-
-{% if result_dic %}
-<div class="spotify-songs">
-    <div class="spotify-songs-title">
-        <span>Here's some songs recommended for you...</span>
+        <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
+          <i class="fa-brands fa-spotify fs-5"></i>
+          <span>Link Spotify Account</span>
+        </button>
+      </div>
     </div>
-    <div class="all-song-cards">
-        {% for ind, a, s, u, i in result_dic %}
-        <div class="single-card">
-            <div class="song-art">
-                <img src="{{ i }}"/>
-            </div>
-            <div class="song-name">
-                {{ s }}
-            </div>
-            <div class="song-artist">
-                {{ a }}
-            </div>
-            <div class="song-controls">
-                <audio controls name="smedia" id="smedia-{{ind}}">
-                    <source src="{{ u }}" type="audio/mpeg">
-                </audio>
-                <!-- <button class="play-button-{{ind}}" id="play-button-{{ind}}" onclick="playAudio()" type="button">
-                    Play
-                </button>
-                <button class="pause-button-{{ind}}" id="pause-button-{{ind}}" onclick="pauseAudio()" type="button">
-                    Pause
-                </button> -->
-            </div>
+  {% endif %}
+
+  <!-- Left Column: Upload Form -->
+  <div class="col-lg-5">
+    <div class="glass-panel p-4 h-100">
+      <h4 class="fw-bold mb-2">Upload Portrait Photo</h4>
+      <p class="text-muted small mb-4">
+        Select a clear image of a face (JPG, PNG, WebP) to analyze expression and mood.
+      </p>
+
+      <form action="{% url 'form' %}" method="post" enctype="multipart/form-data" id="photoUploadForm">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label class="form-label text-muted small fw-bold">Select Image File</label>
+          <div class="p-4 text-center rounded-3 border border-2 border-dashed border-secondary border-opacity-50" style="background: rgba(0, 0, 0, 0.25);" id="dropZone">
+            <i class="fa-solid fa-cloud-arrow-up text-success mb-2" style="font-size: 2.5rem;"></i>
+            <div class="fw-bold text-light mb-1">Drag and drop photo here</div>
+            <div class="text-muted small mb-3">or browse from your device</div>
+            <input type="file" name="image" id="id_image" accept="image/*" class="form-control bg-dark text-light border-secondary border-opacity-50" required>
+          </div>
         </div>
-        {% endfor %}
+
+        <button type="submit" class="btn btn-tunex-primary w-100 justify-content-center py-2" id="analyzePhotoBtn">
+          <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
+          <span>Analyze Emotion</span>
+        </button>
+      </form>
+
+      <!-- Tip Box -->
+      <div class="mt-4 p-3 rounded-3 border border-secondary border-opacity-25" style="background: rgba(255, 255, 255, 0.03);">
+        <div class="fw-bold text-light small mb-1"><i class="fa-solid fa-lightbulb text-warning me-1"></i> Best Results Tip</div>
+        <div class="text-muted smaller" style="font-size: 0.8rem;">
+          Make sure your face is well-lit and facing forward without sunglasses for the most accurate emotional classification.
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Right Column: Results & Annotated Preview -->
+  <div class="col-lg-7">
+    <div class="glass-panel p-4 h-100">
+      <h4 class="fw-bold mb-3">Emotion Analysis Results</h4>
+
+      {% if result %}
+        <div class="row g-4 align-items-center">
+          <!-- Annotated Image -->
+          <div class="col-md-6 text-center">
+            <div class="rounded-3 overflow-hidden border border-success border-opacity-50 p-1" style="background: rgba(0, 0, 0, 0.5); box-shadow: 0 4px 25px rgba(29, 185, 84, 0.15);">
+              <img src="{{ result.annotated_image }}" alt="Detected Emotion Face" class="img-fluid rounded-2" style="max-height: 280px; object-fit: contain;">
+            </div>
+            <div class="mt-2 text-muted small">
+              {% if result.face_detected %}
+                <span class="badge bg-success-subtle text-success border border-success border-opacity-25">
+                  <i class="fa-solid fa-check me-1"></i> Face Bounding Box Detected
+                </span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25">
+                  Center Frame Crop Applied
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Metrics Breakdown -->
+          <div class="col-md-6">
+            <div class="p-3 rounded-3 mb-3 border border-secondary border-opacity-25" style="background: rgba(0, 0, 0, 0.3);">
+              <div class="text-muted small text-uppercase fw-bold">Detected Mood</div>
+              <h3 class="fw-bold text-capitalize text-success mb-1">{{ result.emotion }}</h3>
+              <div class="text-light small">Confidence: <strong>{{ result.confidence|floatformat:1 }}%</strong></div>
+            </div>
+
+            <!-- Probability Bars -->
+            <div class="prob-list">
+              {% for emo, prob in result.probabilities.items %}
+                <div class="emotion-bar-wrapper mb-2">
+                  <div class="emotion-bar-header">
+                    <span class="text-capitalize small">{{ emo }}</span>
+                    <span class="small">{{ prob|floatformat:2 }}</span>
+                  </div>
+                  <div class="emotion-progress" style="height: 6px;">
+                    <div class="emotion-progress-fill" style="width: {% widthratio prob 1 100 %}%; background-color: var(--spotify-green);"></div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Empty Placeholder State -->
+        <div class="text-center py-5">
+          <i class="fa-solid fa-image text-muted mb-3" style="font-size: 3.5rem; opacity: 0.4;"></i>
+          <h5 class="text-light fw-bold mb-1">No Image Analyzed Yet</h5>
+          <p class="text-muted small">Select an image on the left and click "Analyze Emotion" to see the neural prediction.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recommendations Section for Analyzed Photo -->
+  {% if result %}
+    <div class="col-12 mt-4">
+      <div class="glass-panel p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+          <div>
+            <h4 class="fw-bold mb-1">
+              <i class="fa-brands fa-spotify text-success me-2"></i>
+              Curated Spotify Songs for: <span class="text-capitalize text-success">{{ result.emotion }}</span>
+            </h4>
+            <p class="text-muted small mb-0">Music tailored to match your analyzed emotional state.</p>
+          </div>
+          {% if spotify_linked %}
+            <a href="{% url 'liveres' %}?emotion={{ result.emotion }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+              Open Full Playlist View &rarr;
+            </a>
+          {% endif %}
+        </div>
+
+        {% if spotify_linked and tracks_data.tracks %}
+          <div class="row g-3">
+            {% for track in tracks_data.tracks %}
+              <div class="col-sm-6 col-lg-3">
+                <div class="spotify-track-card" id="trackCard-{{ track.id }}">
+                  <div class="track-art-wrapper">
+                    <img src="{{ track.album_art }}" alt="{{ track.name }}" loading="lazy">
+                  </div>
+                  <div class="track-info">
+                    <div>
+                      <div class="track-title" title="{{ track.name }}">{{ track.name }}</div>
+                      <div class="track-artist" title="{{ track.artist }}">{{ track.artist }}</div>
+                    </div>
+                    <div class="track-embed-wrapper mt-2">
+                      <iframe src="{{ track.embed_url }}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 8px;"></iframe>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25 small">
+                      <span class="badge rounded-pill text-uppercase" style="background-color: {{ track.color }}25; color: {{ track.color }};">{{ result.emotion }}</span>
+                      <a href="{{ track.spotify_url }}" target="_blank" rel="noopener" class="text-success text-decoration-none fw-bold small">
+                        Spotify <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif not spotify_linked %}
+          <div class="text-center py-4 border border-secondary border-opacity-25 rounded-3" style="background: rgba(0, 0, 0, 0.25);">
+            <i class="fa-brands fa-spotify text-success mb-2" style="font-size: 2.5rem;"></i>
+            <h5 class="fw-bold text-light mb-1">Spotify Connection Required</h5>
+            <p class="text-light opacity-85 small mb-3">Link your Spotify account to discover songs tuned specifically to your {{ result.emotion }} expression.</p>
+            <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
+              <i class="fa-brands fa-spotify fs-5"></i>
+              <span>Link Spotify Account Now</span>
+            </button>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <p>No songs found for this mood. Try uploading a different expression!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 </div>
-{% endif %}
-
-<script>
-    var audio = [], play = [], pause = [];
-    for(var i = 0 ; i < 3; i++){
-    audio[i] = document.getElementById("smedia-"+i);
-    play[i] = document.getElementById("play-button-"+i);
-    pause[i] = document.getElementById("pause-button-"+i);
-    function playAudio() {
-    audio[i].play();
-    play[i].style.display = "none";
-    pause[i].style.display = "block";
-    }
-
-    function pauseAudio() {
-    audio[i].pause();
-    pause[i].style.display = "none";
-    play[i].style.display = "block";
-    }
-    }
-    
-</script>
-
-<div>
-{% if img.image %}
-<div class="text-center">
-
-<img src="{{img.image.url}}" class="img-fluid" alt="testing">
-</div>
-{% endif %}
-</div>
-
 {% endblock %}

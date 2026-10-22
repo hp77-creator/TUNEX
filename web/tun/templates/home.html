@@ -1,128 +1,172 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}
-    TUNEX
-{% endblock %}
 
-{% block styles  %}
-    <link rel="stylesheet" href="{% static 'styles/homestyle.css' %}">
-{% endblock %}
+{% block title %}TUNEX • AI Facial Emotion & Spotify Music Engine{% endblock %}
 
 {% block content %}
-    <div class="navbar" id="navbar">
-        <div class="navtext">
-            <a href="{% url 'home' %}" class="currentnav">HOME</a>
-            <a href="{% url 'form' %}">STATIC</a>
-            <a href="{% url 'showlive' %}">LIVE</a>
-            <a href="https://drishti-svnit.github.io/drishti/index.html">ABOUT</a>
-        </div>
+<!-- Hero Section -->
+<section class="hero-section text-center text-lg-start">
+  <div class="row align-items-center g-5">
+    <div class="col-lg-7">
+      <div class="hero-badge">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Facial Emotion Recognition & Spotify Audio Match</span>
+      </div>
+      <h1 class="hero-title">
+        Listen to What Your <br>
+        <span class="text-gradient">Face is Feeling.</span>
+      </h1>
+      <p class="hero-subtitle">
+        TUNEX bridges real-time computer vision with Spotify's music intelligence. Scan your mood through your webcam or upload a photo, and let our neural network curate the exact soundscape your emotional state needs.
+      </p>
+
+      <!-- Call-To-Action Buttons -->
+      <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+        <a href="{% url 'showlive' %}" class="btn-tunex-primary">
+          <i class="fa-solid fa-video"></i>
+          <span>Launch Live Scanner</span>
+        </a>
+        <a href="{% url 'form' %}" class="btn-tunex-secondary">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Upload a Photo</span>
+        </a>
+      </div>
+
+      <!-- Spotify Connection Status Banner -->
+      <div class="mt-4 pt-2">
+        {% if spotify_linked %}
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-success-subtle border border-success border-opacity-25 text-success small">
+            <i class="fa-solid fa-circle-check fs-6"></i>
+            <span>Spotify Connected as <strong>{{ spotify_user.display_name|default:"User" }}</strong>. Ready for personalized music!</span>
+          </div>
+        {% else %}
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-dark border border-secondary border-opacity-25 text-light small">
+            <i class="fa-brands fa-spotify text-success fs-5"></i>
+            <button type="button" class="btn btn-link text-success p-0 fw-bold text-decoration-none ms-1" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">Link Now &rarr;</button>
+          </div>
+        {% endif %}
+      </div>
     </div>
 
-
-    <div class="section1" id="section1">
-        <div class="maintext">
-            <div class="textbranch">
-                <div class="hometitle">
-                    <p>TUNEX</p>
-                </div>
-                <div class="hometitletag">
-                    <p>Tunes for Expressions!</p>
-                </div>
-            </div>
+    <!-- Visual Interactive Hero Graphic -->
+    <div class="col-lg-5">
+      <div class="glass-panel p-4 position-relative text-center overflow-hidden">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="small text-muted fw-bold text-uppercase letter-spacing-1">
+            <i class="fa-solid fa-brain text-success me-1"></i> Neural Mood Analysis
+          </span>
+          <span class="badge bg-success-subtle text-success border border-success border-opacity-25">CNN 7-Class</span>
         </div>
+
+        <!-- Animated Face & Wave Demo Box -->
+        <div class="py-4 position-relative">
+          <div class="d-inline-block position-relative p-4 rounded-circle border border-success border-opacity-50" style="background: rgba(29, 185, 84, 0.05); box-shadow: 0 0 50px rgba(29, 185, 84, 0.2);">
+            <i class="fa-solid fa-face-smile text-gradient" style="font-size: 5.5rem;"></i>
+          </div>
+          <div class="mt-3">
+            <h4 class="fw-bold mb-1">Emotion: <span class="text-success">Happy</span></h4>
+            <div class="text-muted small">Target Valence: 85% • Energy: 80% • Genre: Pop / Disco</div>
+          </div>
+        </div>
+
+        <!-- Sample Track Recommendation Bar -->
+        <div class="p-3 rounded-3 mt-2 text-start d-flex align-items-center gap-3 border border-secondary border-opacity-25" style="background: rgba(0, 0, 0, 0.35);">
+          <div class="brand-equalizer">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-bold text-light text-truncate small">Curated Spotify Mood Playback</div>
+            <div class="text-muted smaller text-truncate" style="font-size: 0.75rem;">Instant streaming matched to your expression</div>
+          </div>
+          <a href="{% url 'showlive' %}" class="btn btn-sm btn-outline-success rounded-pill px-3">Try Now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold font-heading mb-2">How TUNEX Works</h2>
+    <p class="text-muted">Three simple steps to transform your facial expression into music.</p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Step 1 -->
+    <div class="col-md-4">
+      <div class="glass-panel p-4 h-100 text-center">
+        <div class="mood-icon-wrapper mx-auto bg-success-subtle text-success">
+          <i class="fa-brands fa-spotify"></i>
+        </div>
+        <h5 class="fw-bold mb-2">1. Connect Spotify</h5>
+        <p class="text-muted small mb-0">
+          Link your account securely through Spotify OAuth2 so TUNEX can match songs to your profile and streaming preferences.
+        </p>
+      </div>
     </div>
 
-    {% load static %}
-    <div class="section2">
-        <div class="disperseleft">
-            <!-- <img src="{% static 'images/disperseleft.png' %}" alt="Left Dispersion Effect"> -->
+    <!-- Step 2 -->
+    <div class="col-md-4">
+      <div class="glass-panel p-4 h-100 text-center">
+        <div class="mood-icon-wrapper mx-auto bg-primary-subtle text-primary">
+          <i class="fa-solid fa-camera"></i>
         </div>
-
-        <div class="invtop">
-            <!-- <img src="{% static 'images/dit.png' %}" alt="Double Inverted Comma Start"> -->
-        </div>
-
-        <div class="welcometext">
-            <div class="description">
-                <p>
-                    <bold style="color: rgb(126, 8, 66);">Music</bold> is a powerful language to <bold style="color: rgb(30, 7, 81);">express our</bold> <br/>
-                    <bold style="color: rgb(30, 7, 81);">feelings</bold> and in many cases is used as <bold style="color: rgb(220, 77, 14);">therapy</bold> to deal <br/>
-                    with tough moments in our lives.
-                </p>
-                <br/>
-                <p>
-                    Our <bold style="color: rgb(242, 10, 65);">moods</bold> sometimes <bold style="color: rgb(12, 86, 178);">unconsciously define</bold> the <br/>
-                    <bold style="color: rgb(30, 7, 81);">genre</bold> of music we listen to.
-                </p>
-            </div>
-        </div>
-
-        <div class="invbottom">
-            <!-- <img src="{% static 'images/dib.png' %}" alt="Double Inverted Comma End"> -->
-        </div>
-
-        <div class="disperseright">
-            <!-- <img src="{% static 'images/disperseright.png' %}" alt="Right Dispersion Effect"> -->
-        </div>
+        <h5 class="fw-bold mb-2">2. Facial Expression Scan</h5>
+        <p class="text-muted small mb-0">
+          Our deep learning model detects your face with OpenCV Haar Cascades and classifies emotions into 7 psychological mood states.
+        </p>
+      </div>
     </div>
 
-
-    <div class="section3">
-        <div class="abouttunex">
-            <div class="abouttunextext">
-                <p>Get the <span style="color: rgb(45, 190, 220);">Songs</span> <br/>
-                    recommended for <br/>
-                    <span style="color:rgb(250, 170, 35);">yourself</span>, based on <br/>
-                    your current <span style="color: rgb(240, 45, 65);">mood</span> <br/>
-                    and emotion.</p>
-                <div class="homerightarrow"></div>
-            </div>
+    <!-- Step 3 -->
+    <div class="col-md-4">
+      <div class="glass-panel p-4 h-100 text-center">
+        <div class="mood-icon-wrapper mx-auto bg-warning-subtle text-warning">
+          <i class="fa-solid fa-compact-disc"></i>
         </div>
-
-        <div class="staticlink">
-            <div class="staticlinkbox1" id="staticlinkbox1" onmouseover="showStatic(id)" onmouseout="hideStatic(id)">
-                <div class="staticlinktext1">
-                    <h1>Static <br/> Image</h1>
-                </div>
-            </div>
-            <div class="staticlinkbox2" id="staticlinkbox2" onmouseover="showStatic(id)" onmouseout="hideStatic(id)">
-                <div class="staticlinktext2">
-                    <p><span>Upload</span> your image in a particular mood, or <span>capture</span> your image throuh webcam.<br/>
-                        At last get songs to <span>listen</span>, based on the mood recognised.</p>
-                    <div class="staticlinkbutton">
-                        <a href="{% url 'form' %}">Get Songs!</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="livelink">
-            <div class="livelinkbox1" id="livelinkbox1" onmouseover="showLive(id)" onmouseout="hideLive(id)">
-                <div class="livelinktext1">
-                    <h1>WebCam <br/> Feed</h1>
-                </div>
-            </div>
-            <div class="livelinkbox2" id="livelinkbox2" onmouseover="showLive(id)" onmouseout="hideLive(id)">
-                <div class="livelinktext2">
-                    <p><span>Realtime</span> mood recognisation and <span>song recommendation</span>, through live webcam <span>video</span> feed.</p>
-                    <div class="livelinkbutton">
-                        <a href="{% url 'showlive' %}">Get Songs!</a>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
+        <h5 class="fw-bold mb-2">3. Instant Mood Playback</h5>
+        <p class="text-muted small mb-0">
+          TUNEX generates acoustic attribute vectors (valence, energy, danceability) and delivers embedded Spotify music to elevate your vibe.
+        </p>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="section4">
-
+<!-- 7 Emotion Spectrum Grid -->
+<section class="py-5">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+    <div>
+      <h2 class="fw-bold font-heading mb-1">Emotion Spectrum</h2>
+      <p class="text-muted mb-0">Explore how TUNEX interprets each of the 7 supported emotional states.</p>
     </div>
+    <div class="mt-3 mt-md-0">
+      <a href="{% url 'showlive' %}" class="btn btn-outline-light rounded-pill btn-sm px-3">
+        Test With Your Camera &rarr;
+      </a>
+    </div>
+  </div>
 
-
-<!--
- <div>
-<h3>Predict</h3>
-<button><a href="{% url 'form' %}">Click here for Static</button>
-<button><a href="{% url 'showlive' %}">Click here for Live</button>
-</div>
--->
+  <div class="row g-3">
+    {% for emotion_key, data in emotions.items %}
+      <div class="col-sm-6 col-lg-3">
+        <div class="mood-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="mood-badge" style="background-color: {{ data.color }}20; color: {{ data.color }}; border: 1px solid {{ data.color }}40;">
+              {{ emotion_key }}
+            </span>
+            <i class="fa-solid fa-wave-square" style="color: {{ data.color }};"></i>
+          </div>
+          <h6 class="fw-bold text-light mb-1 text-capitalize">{{ emotion_key }}</h6>
+          <p class="text-muted small mb-3" style="min-height: 40px;">{{ data.tagline }}</p>
+          <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-2 small text-muted">
+            <span>Valence: {{ data.valence|floatformat:2 }}</span>
+            <span>Energy: {{ data.energy|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}
