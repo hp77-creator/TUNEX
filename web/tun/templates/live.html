@@ -197,6 +197,16 @@
   let isScanning = false;
   let currentEmotion = null;
 
+  function hidePlaceholder() {
+    cameraPlaceholder.classList.add('d-none');
+    cameraPlaceholder.style.setProperty('display', 'none', 'important');
+  }
+
+  function showPlaceholder() {
+    cameraPlaceholder.classList.remove('d-none');
+    cameraPlaceholder.style.setProperty('display', 'flex', 'important');
+  }
+
   // Start Camera
   async function startCamera() {
     try {
@@ -206,16 +216,21 @@
         audio: false
       });
       video.srcObject = mediaStream;
-      video.onloadedmetadata = () => {
-        video.play();
-        cameraPlaceholder.style.display = 'none';
+      hidePlaceholder();
+      
+      const onReady = () => {
+        video.play().catch(e => console.log('Autoplay handled', e));
+        hidePlaceholder();
         cameraStatusBadge.className = 'badge bg-success rounded-pill px-2 py-1';
         cameraStatusBadge.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Active';
         scanNowBtn.disabled = false;
         stopCamBtn.style.display = 'inline-block';
-        startCamBtn.style.display = 'none';
         scanningStatusText.textContent = 'Camera ready. Position your face in view.';
       };
+
+      video.onloadedmetadata = onReady;
+      video.onplaying = onReady;
+      onReady();
     } catch (err) {
       console.error("Camera access error:", err);
       scanningStatusText.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Camera access denied: ${err.message}</span>`;
@@ -230,12 +245,11 @@
       mediaStream = null;
     }
     video.srcObject = null;
-    cameraPlaceholder.style.display = 'flex';
+    showPlaceholder();
     cameraStatusBadge.className = 'badge bg-danger rounded-pill px-2 py-1';
     cameraStatusBadge.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Inactive';
     scanNowBtn.disabled = true;
     stopCamBtn.style.display = 'none';
-    startCamBtn.style.display = 'inline-block';
     scannerOverlay.style.display = 'none';
     if (autoScanInterval) {
       clearInterval(autoScanInterval);

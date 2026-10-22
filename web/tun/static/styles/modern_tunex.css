@@ -609,7 +609,7 @@ body.tunex-app {
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -617,6 +617,11 @@ body.tunex-app {
   z-index: 10;
   text-align: center;
   padding: 2rem;
+  transition: opacity 0.25s ease;
+}
+
+#cameraPlaceholder.d-none {
+  display: none !important;
 }
 
 #cameraPlaceholder h5 {
