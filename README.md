@@ -1,97 +1,88 @@
-# TUNEX
+# TUNEX • Tunes for Expressions
 
-**Note**: This project was a collective team effort, Models and other data collection were done with other team members working on TUNEX.
-However, the main aim of this repo is to create clean and simple implementation of the whole project
+> Real-time facial emotion recognition and personalized Spotify song recommendation engine.
 
-Link to [Drishti Version](https://github.com/arjunparmar/TUNEX)
+![Banner](images/banner.png)
 
-⇥To build a deploy-able system that detects our emotions at real time using webcam feed and smartly classifies one’s playlist into genres, at last playing a song that suits the current emotion and behavior of the person, as specified by the facial analysis.
+TUNEX bridges computer vision with music streaming intelligence. It analyzes facial expressions from a live webcam feed or uploaded photos, classifies the emotional state into 7 psychological mood categories using a Deep Convolutional Neural Network (CNN), and streams personalized song recommendations directly from the user's linked Spotify account.
 
-![](https://tenor.com/bexsH.gif)
-Available on Docker, now you can go and install the app directly from [dockerhub](./Install.md)
-![Image](images/banner.png)
-## Timeline
-<details>
-<summary>Timeline followed for the project</summary>
-| Date | Task |
-|---|---|
-|11-10| Project Assigned and Groups formed on Communication Channel |
-| 12-10| [Course-1](#courses) |
-| 18-10| [Course-2](#courses) |
-| 24-10| [Course-3](#courses) |
-| 4-11 | Read [Papers](#papers)|
-| 11-11 | Finalised the approach and the [Emotions](#emotions) to detect|
-| 14-11 | Selection of Dataset and processing|
-| 22-11 | Face Detection using Harcascade|
-| 29-11 | Dataset augmented and finalised|
-| 22-12 | Model Training |
-</details>
+---
 
-## Emotions
+## ✨ Key Features (Refactored & Modernized)
 
-- Afraid :fearful:
-- Angry :angry:
-- Disgust :unamused:
-- Happy :smiley:
-- Neutral :neutral_face:
-- Sad :sob:
-- Suprised :open_mouth:
+- **🎧 Seamless Spotify Account Linking**:
+  - Secure **Spotify OAuth2** Authorization Code flow with session management and automatic token refresh.
+  - Users link their accounts with one click to unlock personalized recommendations.
+- **📷 Client-Side HTML5 Webcam Streaming**:
+  - Replaces obsolete server-side OpenCV hardware capture with in-browser `navigator.mediaDevices.getUserMedia()`.
+  - Supports both **Manual Snapshot Scan** and **Continuous Live Scanning (2.5s)**.
+- **🧠 7-Class Emotion Neural Network**:
+  - OpenCV Haar Cascade frontal face detection extracts and normalizes the region of interest (ROI).
+  - A lightweight 48x48 CNN model predicts probabilities across **Happy, Sad, Angry, Surprised, Afraid, Disgust, and Neutral**.
+- **🎵 Modern Audio Playback**:
+  - Upgraded to **Embedded Spotify Widgets** (`iframe`) with album art, track details, and instant streaming (replacing deprecated 30-sec preview URLs).
+- **🎨 Cyber-Glassmorphic Dark Mode UI**:
+  - Built with responsive Bootstrap 5, Outfit & Inter typography, animated equalizer, and neon mood accent styling.
+- **⚡ Thread-Safe & Scalable**:
+  - Clean separation into `ai_service` and `spotify_service` with zero mutable global variables and full environment variable (`.env`) support.
 
-## Dataset 
-[Google Drive link](https://drive.google.com/file/d/1U1F9L56AX-Vnk0EG4FZWowh9WEIBH_M4/view?usp=sharing)
+---
 
-## Demo
-[Facebook Post](https://www.facebook.com/100005205645669/videos/1636682486515257/)
+## 🎭 Supported Emotions & Audio Matching
 
-<details>
-<summary><b> Courses</b></summary>
+| Emotion | Target Valence | Target Energy | Curated Spotify Soundscape |
+| :--- | :---: | :---: | :--- |
+| **Happy** 😄 | 0.85 | 0.80 | Uplifting pop, summer disco, upbeat dance hits |
+| **Sad** 😢 | 0.20 | 0.30 | Melancholy indie, acoustic ballads, gentle piano |
+| **Angry** 😡 | 0.30 | 0.90 | High-octane rock, heavy metal, raw punk energy |
+| **Surprised** 😲 | 0.75 | 0.85 | Electrifying synthwave, hyperpop, energetic beats |
+| **Afraid** 😨 | 0.35 | 0.45 | Calming ambient, grounding cinematic lo-fi |
+| **Disgust** 😒 | 0.40 | 0.65 | Gritty 90s grunge, alternative rock, raw blues |
+| **Neutral** 😐 | 0.50 | 0.50 | Lo-fi study beats, acoustic chillout, mellow flow |
 
-- Course 1 - [Neural Networks and Deep learning](https://www.coursera.org/learn/neural-networks-deep-learning?specialization=deep-learning)
-- Course 2 - [Improving Deep Neural Networks](https://www.coursera.org/learn/deep-neural-network?specialization=deep-learning)
-- Course 3 - [Convolutional Neural Networks](https://www.coursera.org/learn/convolutional-neural-networks?specialization=deep-learning)
-</details>
+---
 
+## 🚀 Quickstart Guide
 
-## Papers
+For step-by-step instructions on setting up your Spotify Developer credentials and running TUNEX, see **[Install.md](./Install.md)**.
 
-- [Emotion Detections using facial expression recognition and EEG](https://ieeexplore.ieee.org/document/7753378)
-- [Real Time Emotion Recognition System using Facial Expressions and EEG](https://www.sciencedirect.com/science/article/pii/S235291482030201X)
-- [Music Recommendation System](b2b.musicovery.com)
-- [Smart Music Player Integrating facial emotion recognition and music mood recommendation](https://ieeexplore.ieee.org/abstract/document/8299738)
-- [Facial Expression Recognition using Facial Landmarks and Random Forest Classifier](https://www.researchgate.net/publication/325674764_Facial_Expression_Recognition_Using_Facial_Landmarks_and_Random_Forest_Classifier)
-- [Facial Expression Recognition using Facial Landmark Detection and Feature Extraction via Neural Networks](https://arxiv.org/pdf/1812.04510.pdf)
-- [Intraface model to extract features](https://www.ri.cmu.edu/pub_files/2015/5/intraface_final.pdf)
+```bash
+# 1. Clone repository
+git clone https://github.com/hp77-creator/TUNEX.git tunex
+cd tunex
 
+# 2. Set up virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
+# 3. Install requirements
+pip install -r requirements.txt
 
-<details>
-<summary><b> Errors Faced</b></summary>
+# 4. Copy and configure .env
+cp .env.example web/tun/.env
 
-1. In HaarCascade to detect face, we have to import a xml file which is already present in OpenCV, but when I was doing
-```python
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-#The above xml file was not detected
-#maybe because it was not stored in bin of OpenCV as I had installed opencv in miniconda environment
-
+# 5. Run migrations & start server
+cd web/tun
+python manage.py migrate
+python manage.py runserver
 ```
-   To overcome it, I did [this](https://github.com/arjunparmar/TUNEX/blob/main/Himanshu/faceDet.py#L4)  
 
-2. Installing DLib without Pycharm environment:
-   using
-   ```bash
-   pip install dlib
-   ```
-   give errors because several other packages are required before using this command. To know more refer [this](https://www.pyimagesearch.com/2017/03/27/how-to-install-dlib/?fbclid=IwAR1h_ZFwcqXMdE8zGgrVYcgwH1RntRNe0_Nw1dsJw6K7chn7sZ6aDTUhskQ)
-   
+Visit **http://127.0.0.1:8000/** in your browser.
 
+---
 
-3.  While arranging the files in the KDEF dataset, You may encounter a key error on Images 'AF31V.JPG' and 'AM31H.JPG'. The reason for the same is we have seven emotions that are thoroughly documented these two images or least their names do not qualify to our expectations and hence can be removed prior to running this [script](https://github.com/arjunparmar/TUNEX/blob/main/Gaurav/arranging_data.py) or [this](https://github.com/arjunparmar/TUNEX/blob/main/Gaurav/reading_data.py).
+## 🧪 Testing
 
-4. [Visualizing Data in Terminal](https://hackernoon.com/visualizing-data-in-terminal-using-lehar-7cfded09c1ad)
+Run the automated test suite verifying computer vision inference, Spotify OAuth flows, and view endpoints:
 
-5. [Visualizing Data in Terminal without Lehar](https://stackoverflow.com/questions/36269746/matplotlib-plots-arent-shown-when-running-file-from-bash-terminal)
+```bash
+cd web/tun
+python manage.py test recognise
+```
 
+---
 
-</details>
+## 👥 Credits
 
-Made with :heart: by DRISHTI-AI/ML Team.
+Developed as a collaborative project by the DRISHTI-AI/ML Team.  
+Enhanced and modernized with client-side webcam streaming, Spotify OAuth2 account linking, and a responsive glassmorphic UI.

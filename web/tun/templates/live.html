@@ -1,28 +1,459 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-    Live!
-{% endblock %}
-
-{% block styles %}
-    <link rel="stylesheet" href="{% static 'styles/homestyle.css' %}">
-{% endblock %}
+{% block title %}TUNEX • Live Facial Emotion Scanner{% endblock %}
 
 {% block content %}
-<div class="container">
-{% if not submitbutton %}
-    <div class="single-card">
-        <h3> Video Output:  </h3>
-        <div class="text-center">
-            <img src="{% url 'livefeed' %}">
+<div class="row g-4 pt-2">
+  <!-- Top Banner: Spotify Requirement Warning if unlinked -->
+  {% if not spotify_linked %}
+    <div class="col-12">
+      <div class="spotify-connect-banner d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-3 rounded-circle bg-dark border border-success border-opacity-50 text-success fs-3">
+            <i class="fa-brands fa-spotify"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-light">Spotify Account Linking Required</h5>
+            <p class="text-light opacity-85 small mb-0">
+              To receive customized music recommendations tailored to your detected facial emotion, you must link your Spotify account first.
+            </p>
+          </div>
         </div>
-        <div class="text-center">
-            <a href="{% url 'liveres' %}"><button class="btn btn-primary">Suggest some songs</button></a>
-        </div>
+        <button type="button" class="btn-spotify px-4 py-2 d-inline-flex align-items-center gap-2 text-nowrap" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
+          <i class="fa-brands fa-spotify fs-5"></i>
+          <span>Link Spotify Account</span>
+        </button>
+      </div>
     </div>
+  {% endif %}
 
+  <!-- Left Column: Live Camera Stream & Scanner Controls -->
+  <div class="col-lg-7">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-danger rounded-pill px-2 py-1" id="cameraStatusBadge">
+            <i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Inactive
+          </span>
+          <span class="text-light opacity-75 small">HTML5 In-Browser Video Stream</span>
+        </div>
+        <div class="form-check form-switch text-light opacity-75 small">
+          <input class="form-check-input" type="checkbox" id="autoScanSwitch">
+          <label class="form-check-label" for="autoScanSwitch">Auto-Scan (2s)</label>
+        </div>
+      </div>
+
+      <!-- Live Video Feed Container -->
+      <div class="webcam-container mb-3" id="webcamWrapper">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <canvas id="webcamCanvas"></canvas>
+
+        <!-- Scanner Target Overlay -->
+        <div class="scanner-overlay" id="scannerOverlay" style="display: none;">
+          <div class="scanner-target-box">
+            <div class="scanning-laser"></div>
+          </div>
+        </div>
+
+        <!-- Camera Off State Placeholder -->
+        <div id="cameraPlaceholder">
+          <div class="p-3 rounded-circle bg-dark border border-success border-opacity-50 text-success mb-3" style="box-shadow: 0 0 30px rgba(29, 185, 84, 0.2);">
+            <i class="fa-solid fa-camera fs-1"></i>
+          </div>
+          <h4 class="fw-bold text-light mb-2">Webcam is Inactive</h4>
+          <p class="text-light opacity-85 small mb-4" style="max-width: 360px;">
+            Click below to allow camera access in your browser. All facial emotion analysis runs safely in real-time.
+          </p>
+          <button class="btn btn-tunex-primary px-4 py-2 fs-6" id="startCamBtn">
+            <i class="fa-solid fa-camera me-2"></i> Enable Webcam
+          </button>
+        </div>
+      </div>
+
+      <!-- Camera Action Controls -->
+      <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <div class="d-flex gap-2">
+          <button class="btn btn-tunex-primary" id="scanNowBtn" disabled>
+            <i class="fa-solid fa-bolt me-1"></i>
+            <span>Scan Emotion</span>
+          </button>
+          <button class="btn btn-outline-secondary rounded-pill" id="stopCamBtn" style="display: none;">
+            <i class="fa-solid fa-pause me-1"></i> Stop Camera
+          </button>
+        </div>
+
+        <div id="scanningStatusText" class="text-light opacity-75 small d-flex align-items-center gap-2">
+          <span>Click 'Enable Webcam' to begin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Emotion Analysis Metrics & Spotify Match -->
+  <div class="col-lg-5">
+    <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-light mb-0">Emotion Metrics</h5>
+          <span class="badge bg-secondary rounded-pill" id="faceDetectedBadge">No Face Yet</span>
+        </div>
+
+        <!-- Dominant Emotion Box -->
+        <div class="p-3 rounded-3 mb-4 text-center border border-secondary border-opacity-25" id="dominantEmotionBox" style="background: rgba(0, 0, 0, 0.35);">
+          <div class="text-uppercase fw-bold mb-1" style="color: #6EE7B7;">Dominant Emotion</div>
+          <h2 class="fw-bold mb-1 text-capitalize text-light" id="dominantEmotionText">Waiting...</h2>
+          <div class="text-success fw-bold" id="confidenceScoreText">0.0% Confidence</div>
+        </div>
+
+        <!-- 7-Class Probability Meters -->
+        <div class="mb-4" id="probabilityMetersContainer">
+          {% for emotion_key, data in emotions.items %}
+            <div class="emotion-bar-wrapper">
+              <div class="emotion-bar-header">
+                <span class="text-capitalize text-light fw-bold">{{ emotion_key }}</span>
+                <span id="probVal-{{ emotion_key }}" class="text-success fw-bold">0%</span>
+              </div>
+              <div class="emotion-progress">
+                <div class="emotion-progress-fill" id="probBar-{{ emotion_key }}" style="width: 0%; background-color: {{ data.color }};"></div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Action Card: Fetch / View Recommendations -->
+      <div class="border-top border-secondary border-opacity-25 pt-3 mt-auto">
+        {% if spotify_linked %}
+          <button class="btn btn-tunex-primary w-100 justify-content-center py-2" id="getRecommendationsBtn" disabled>
+            <i class="fa-brands fa-spotify fs-5 me-2"></i>
+            <span>Suggest Spotify Songs</span>
+          </button>
+        {% else %}
+          <button type="button" class="btn btn-spotify w-100 justify-content-center py-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
+            <i class="fa-brands fa-spotify fs-5 me-2"></i>
+            <span>Link Spotify Account First</span>
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Section: Live Recommendations Display -->
+  <div class="col-12 mt-4" id="liveRecommendationsSection" style="display: none;">
+    <div class="glass-panel p-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+          <h4 class="fw-bold mb-1">
+            <i class="fa-brands fa-spotify text-success me-2"></i>
+            Songs Curated for: <span class="text-capitalize text-success" id="recEmotionTitle">Happy</span>
+          </h4>
+          <p class="text-muted small mb-0" id="recEmotionTagline">
+            Personalized music streamed directly to your active mood.
+          </p>
+        </div>
+        <div>
+          <a href="#" id="viewAllRecsLink" class="btn btn-sm btn-outline-success rounded-pill px-3">
+            Open in Full View &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Tracks Grid -->
+      <div class="row g-3" id="tracksCardsGrid">
+        <!-- Dynamically injected via JavaScript -->
+      </div>
+    </div>
+  </div>
 </div>
-{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Elements
+  const video = document.getElementById('webcamVideo');
+  const canvas = document.getElementById('webcamCanvas');
+  const startCamBtn = document.getElementById('startCamBtn');
+  const stopCamBtn = document.getElementById('stopCamBtn');
+  const scanNowBtn = document.getElementById('scanNowBtn');
+  const autoScanSwitch = document.getElementById('autoScanSwitch');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const cameraStatusBadge = document.getElementById('cameraStatusBadge');
+  const scannerOverlay = document.getElementById('scannerOverlay');
+  const scanningStatusText = document.getElementById('scanningStatusText');
+  const dominantEmotionText = document.getElementById('dominantEmotionText');
+  const confidenceScoreText = document.getElementById('confidenceScoreText');
+  const dominantEmotionBox = document.getElementById('dominantEmotionBox');
+  const faceDetectedBadge = document.getElementById('faceDetectedBadge');
+  const getRecommendationsBtn = document.getElementById('getRecommendationsBtn');
+  const liveRecommendationsSection = document.getElementById('liveRecommendationsSection');
+  const tracksCardsGrid = document.getElementById('tracksCardsGrid');
+  const recEmotionTitle = document.getElementById('recEmotionTitle');
+  const recEmotionTagline = document.getElementById('recEmotionTagline');
+  const viewAllRecsLink = document.getElementById('viewAllRecsLink');
+
+  let mediaStream = null;
+  let autoScanInterval = null;
+  let isScanning = false;
+  let currentEmotion = null;
+
+  function hidePlaceholder() {
+    cameraPlaceholder.classList.add('d-none');
+    cameraPlaceholder.style.setProperty('display', 'none', 'important');
+  }
+
+  function showPlaceholder() {
+    cameraPlaceholder.classList.remove('d-none');
+    cameraPlaceholder.style.setProperty('display', 'flex', 'important');
+  }
+
+  // Start Camera
+  async function startCamera() {
+    try {
+      scanningStatusText.innerHTML = '<span class="spinner-border spinner-border-sm text-success me-2"></span> Requesting camera permission...';
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+        audio: false
+      });
+      video.srcObject = mediaStream;
+      hidePlaceholder();
+      
+      const onReady = () => {
+        video.play().catch(e => console.log('Autoplay handled', e));
+        hidePlaceholder();
+        cameraStatusBadge.className = 'badge bg-success rounded-pill px-2 py-1';
+        cameraStatusBadge.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Active';
+        scanNowBtn.disabled = false;
+        stopCamBtn.style.display = 'inline-block';
+        scanningStatusText.textContent = 'Camera ready. Position your face in view.';
+      };
+
+      video.onloadedmetadata = onReady;
+      video.onplaying = onReady;
+      onReady();
+    } catch (err) {
+      console.error("Camera access error:", err);
+      scanningStatusText.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> Camera access denied: ${err.message}</span>`;
+      alert("Unable to access your webcam. Please allow camera permissions in your browser.");
+    }
+  }
+
+  // Stop Camera
+  function stopCamera() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    }
+    video.srcObject = null;
+    showPlaceholder();
+    cameraStatusBadge.className = 'badge bg-danger rounded-pill px-2 py-1';
+    cameraStatusBadge.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> Camera Inactive';
+    scanNowBtn.disabled = true;
+    stopCamBtn.style.display = 'none';
+    scannerOverlay.style.display = 'none';
+    if (autoScanInterval) {
+      clearInterval(autoScanInterval);
+      autoScanInterval = null;
+      autoScanSwitch.checked = false;
+    }
+    scanningStatusText.textContent = 'Camera stopped.';
+  }
+
+  // Capture Frame and Send to /api/detect-emotion/
+  async function captureAndAnalyze() {
+    if (!mediaStream || isScanning) return;
+    isScanning = true;
+    scannerOverlay.style.display = 'flex';
+    scanningStatusText.innerHTML = '<span class="spinner-border spinner-border-sm text-success me-2"></span> Analyzing facial expressions...';
+
+    // Draw frame to canvas
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const b64Image = canvas.toDataURL('image/jpeg', 0.85);
+
+    try {
+      const response = await fetch('/api/detect-emotion/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({ image: b64Image }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        displayEmotionResults(data);
+      } else {
+        scanningStatusText.textContent = `Error: ${data.error || 'Prediction failed'}`;
+      }
+    } catch (err) {
+      console.error("Analysis request error:", err);
+      scanningStatusText.textContent = 'Network error during emotion analysis.';
+    } finally {
+      isScanning = false;
+      setTimeout(() => {
+        if (!autoScanSwitch.checked) {
+          scannerOverlay.style.display = 'none';
+        }
+      }, 500);
+    }
+  }
+
+  // Render Emotion Results in UI
+  function displayEmotionResults(data) {
+    currentEmotion = data.emotion;
+    const confidencePct = (data.confidence * 100).toFixed(1);
+
+    dominantEmotionText.textContent = data.emotion;
+    confidenceScoreText.textContent = `${confidencePct}% Confidence`;
+
+    if (data.face_detected) {
+      faceDetectedBadge.className = 'badge bg-success-subtle text-success border border-success border-opacity-25';
+      faceDetectedBadge.textContent = 'Face Locked';
+    } else {
+      faceDetectedBadge.className = 'badge bg-warning-subtle text-warning border border-warning border-opacity-25';
+      faceDetectedBadge.textContent = 'Center Frame';
+    }
+
+    // Update 7 Emotion Progress Bars
+    if (data.probabilities) {
+      for (const [emo, prob] of Object.entries(data.probabilities)) {
+        const valElem = document.getElementById(`probVal-${emo}`);
+        const barElem = document.getElementById(`probBar-${emo}`);
+        const pct = Math.round(prob * 100);
+        if (valElem) valElem.textContent = `${pct}%`;
+        if (barElem) barElem.style.width = `${pct}%`;
+      }
+    }
+
+    if (getRecommendationsBtn) {
+      getRecommendationsBtn.disabled = false;
+      getRecommendationsBtn.innerHTML = `<i class="fa-brands fa-spotify fs-5 me-2"></i><span>Suggest Songs for ${data.emotion.toUpperCase()}</span>`;
+    }
+
+    scanningStatusText.innerHTML = `<i class="fa-solid fa-circle-check text-success me-1"></i> Detected: <strong class="text-light text-capitalize">${data.emotion}</strong> (${confidencePct}%)`;
+  }
+
+  // Fetch Spotify Recommendations for Current Emotion
+  async function fetchSpotifyRecommendations() {
+    if (!currentEmotion) return;
+
+    if (getRecommendationsBtn) {
+      getRecommendationsBtn.disabled = true;
+      getRecommendationsBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Curating Spotify Playlist...';
+    }
+
+    try {
+      const res = await fetch(`/api/recommendations/?emotion=${encodeURIComponent(currentEmotion)}&limit=8`);
+      if (res.status === 401) {
+        // Spotify account linking required
+        const errData = await res.json();
+        window.location.href = errData.auth_url || '/spotify/login/';
+        return;
+      }
+
+      const data = await res.json();
+      if (data.success && data.tracks.length > 0) {
+        renderTracksGrid(data.tracks, data.emotion, data.profile);
+      } else {
+        alert("No tracks found for this mood. Please try again.");
+      }
+    } catch (err) {
+      console.error("Recommendations error:", err);
+      alert("Could not load recommendations. Please verify Spotify connection.");
+    } finally {
+      if (getRecommendationsBtn) {
+        getRecommendationsBtn.disabled = false;
+        getRecommendationsBtn.innerHTML = `<i class="fa-brands fa-spotify fs-5 me-2"></i><span>Suggest Songs for ${currentEmotion.toUpperCase()}</span>`;
+      }
+    }
+  }
+
+  // Render Spotify Tracks Cards
+  function renderTracksGrid(tracks, emotion, profile) {
+    recEmotionTitle.textContent = emotion;
+    if (profile && profile.tagline) {
+      recEmotionTagline.textContent = profile.tagline;
+    }
+    viewAllRecsLink.href = `/recommendations/?emotion=${encodeURIComponent(emotion)}`;
+
+    tracksCardsGrid.innerHTML = '';
+    tracks.forEach((track, index) => {
+      const cardCol = document.createElement('div');
+      cardCol.className = 'col-sm-6 col-lg-3';
+      cardCol.innerHTML = `
+        <div class="spotify-track-card" id="trackCard-${track.id}">
+          <div class="track-art-wrapper">
+            <img src="${track.album_art}" alt="${track.name}" loading="lazy">
+          </div>
+          <div class="track-info">
+            <div>
+              <div class="track-title" title="${track.name}">${track.name}</div>
+              <div class="track-artist" title="${track.artist}">${track.artist}</div>
+            </div>
+            <div class="track-embed-wrapper mt-2">
+              <iframe src="${track.embed_url}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 8px;"></iframe>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25 small">
+              <span class="badge rounded-pill text-uppercase" style="background-color: ${track.color}25; color: ${track.color};">${emotion}</span>
+              <a href="${track.spotify_url}" target="_blank" rel="noopener" class="text-success text-decoration-none fw-bold small">
+                Spotify <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+      tracksCardsGrid.appendChild(cardCol);
+    });
+
+    liveRecommendationsSection.style.display = 'block';
+    liveRecommendationsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // CSRF Token Helper
+  function getCsrfToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, 10) === 'csrftoken=') {
+          cookieValue = decodeURIComponent(cookie.substring(10));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Event Listeners
+  startCamBtn.addEventListener('click', startCamera);
+  stopCamBtn.addEventListener('click', stopCamera);
+  scanNowBtn.addEventListener('click', captureAndAnalyze);
+
+  if (getRecommendationsBtn) {
+    getRecommendationsBtn.addEventListener('click', fetchSpotifyRecommendations);
+  }
+
+  autoScanSwitch.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      if (!mediaStream) {
+        startCamera().then(() => {
+          autoScanInterval = setInterval(captureAndAnalyze, 2500);
+        });
+      } else {
+        autoScanInterval = setInterval(captureAndAnalyze, 2500);
+      }
+    } else {
+      if (autoScanInterval) {
+        clearInterval(autoScanInterval);
+        autoScanInterval = null;
+      }
+    }
+  });
+</script>
 {% endblock %}

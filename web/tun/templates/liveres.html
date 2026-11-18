@@ -1,134 +1,124 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
-{% block title %}
-    Recommendations
-{% endblock %}
-{% block style %}
-<style>
-    body{
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-    .spotify-songs{
-        height:100vh;
-        width: 100%;
-    }
-    .spotify-songs-title{
-        height:22vh;
-        width:100%;
-        padding-left: 5%;
-        padding-top: 6vh;
-        background-color: rgb(10, 24, 30);
-    }
-    .spotify-songs-title span{
-        font-family: sans-serif;
-        font-size: 6vh;
-        font-weight:bold;
-        color: rgb(251, 252, 255);
-    }
-    .all-song-cards{
-        height:55vh;
-        width: 90%;
-        margin-left: 5%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .single-card{
-        width: 16%;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        margin-right: 3%;
-        border-radius: 10px;
-    }
-    .song-art img{
-        width: 100%;
-        height: auto;
-        border-radius: 10px 10px 0 0;
-    }
-    .song-name{
-        height: 6vh;
-        text-align: center;
-        padding: 6% 7% 2% 7%;
-        font-size: 2.5vh;
-        font-weight:bold;
-        overflow-y: hidden;
-    }
-    .song-artist{
-        text-align: center;
-        padding: 1% 8% 4% 8%;
-        font-size: 1.8vh;
-        color: gray;
-    }
-    .song-controls{
-        
-    }
-</style>
-{% endblock %}
+{% block title %}TUNEX • Spotify Recommendations for {{ emotion|title }}{% endblock %}
 
 {% block content %}
-<div class="container">
-<p> So, you are feeling {{ res }}</p>
-</div>
-{% if result_dic %}
-<div class="spotify-songs">
-    <div class="spotify-songs-title">
-        <span>Here's some songs recommended for you...</span>
-    </div>
-    <div class="all-song-cards">
-        {% for a, s, u, i in result_dic %}
-        <div class="single-card">
-            <div class="song-art">
-                <img src="{{ i }}"/>
-            </div>
-            <div class="song-name">
-                {{ s }}
-            </div>
-            <div class="song-artist">
-                {{ a }}
-            </div>
-            <div class="song-controls">
-                <audio name="smedia" id="smedia">
-                    <source src="{{ u }}" type="audio/mpeg">
-                </audio>
-                <button class="play-button" id="play-button" onclick="playAudio()" type="button">
-                    Play
-                </button>
-                <button class="pause-button" id="pause-button" onclick="pauseAudio()" type="button">
-                    Pause
-                </button>
-            </div>
+<div class="row g-4 pt-2">
+  {% if not spotify_linked %}
+    <!-- Spotify Linking Required Notice -->
+    <div class="col-12">
+      <div class="glass-panel p-5 text-center my-4">
+        <div class="d-inline-flex p-4 rounded-circle bg-dark border border-success border-opacity-50 text-success mb-3" style="box-shadow: 0 0 35px rgba(29, 185, 84, 0.2);">
+          <i class="fa-brands fa-spotify" style="font-size: 3.5rem;"></i>
         </div>
-        {% endfor %}
+        <h3 class="fw-bold text-light mb-2">Connect Your Spotify Account</h3>
+        <p class="text-light opacity-85 mx-auto mb-4" style="max-width: 580px;">
+          TUNEX generates customized song recommendations based on your detected mood by linking directly with your Spotify account. Connect once to stream recommendations tailored to your emotion.
+        </p>
+        <button type="button" class="btn-spotify px-4 py-2 fs-6 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#spotifyConnectModal">
+          <i class="fa-brands fa-spotify fs-5"></i>
+          <span>Link Spotify Account Now</span>
+        </button>
+      </div>
     </div>
+
+  {% else %}
+    <!-- Recommendations Header -->
+    <div class="col-12">
+      <div class="glass-panel p-4 position-relative overflow-hidden">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="mood-badge" style="background-color: {{ profile.color }}25; color: {{ profile.color }}; border: 1px solid {{ profile.color }}45;">
+                <i class="fa-solid fa-face-smile me-1"></i> Mood: {{ emotion }}
+              </span>
+              <span class="badge bg-success-subtle text-success border border-success border-opacity-25">
+                <i class="fa-brands fa-spotify me-1"></i> Spotify Linked
+              </span>
+            </div>
+            <h2 class="fw-bold font-heading mb-1">
+              Curated for <span class="text-capitalize" style="color: {{ profile.color }};">{{ emotion }}</span>
+            </h2>
+            <p class="text-muted mb-0 small">
+              {{ profile.tagline }}
+            </p>
+          </div>
+
+          <!-- Mood Audio Attributes -->
+          <div class="d-flex gap-3 align-items-center p-3 rounded-3 border border-secondary border-opacity-25" style="background: rgba(0, 0, 0, 0.35);">
+            <div class="text-center px-2">
+              <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">Target Valence</div>
+              <div class="fw-bold text-light fs-5">{{ profile.valence|floatformat:2 }}</div>
+            </div>
+            <div class="border-start border-secondary border-opacity-25 ps-3 text-center px-2">
+              <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">Target Energy</div>
+              <div class="fw-bold text-light fs-5">{{ profile.energy|floatformat:2 }}</div>
+            </div>
+            <div class="border-start border-secondary border-opacity-25 ps-3 text-center px-2">
+              <div class="small text-muted text-uppercase" style="font-size: 0.7rem;">Tracks Found</div>
+              <div class="fw-bold text-success fs-5">{{ tracks|length }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emotion Switcher Filter Bar -->
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top border-secondary border-opacity-25 align-items-center">
+          <span class="text-muted small fw-bold text-uppercase me-2" style="font-size: 0.75rem;">Switch Mood:</span>
+          {% for emo in "happy,sad,angry,surprised,afraid,disgust,neutral"|make_list|join:""|slice:":7" %}
+          {% endfor %}
+          <a href="?emotion=happy" class="btn btn-sm rounded-pill px-3 {% if emotion == 'happy' %}btn-success{% else %}btn-outline-secondary{% endif %}">Happy</a>
+          <a href="?emotion=sad" class="btn btn-sm rounded-pill px-3 {% if emotion == 'sad' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Sad</a>
+          <a href="?emotion=angry" class="btn btn-sm rounded-pill px-3 {% if emotion == 'angry' %}btn-danger{% else %}btn-outline-secondary{% endif %}">Angry</a>
+          <a href="?emotion=surprised" class="btn btn-sm rounded-pill px-3 {% if emotion == 'surprised' %}btn-warning text-dark{% else %}btn-outline-secondary{% endif %}">Surprised</a>
+          <a href="?emotion=afraid" class="btn btn-sm rounded-pill px-3 {% if emotion == 'afraid' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Afraid</a>
+          <a href="?emotion=disgust" class="btn btn-sm rounded-pill px-3 {% if emotion == 'disgust' %}btn-info text-dark{% else %}btn-outline-secondary{% endif %}">Disgust</a>
+          <a href="?emotion=neutral" class="btn btn-sm rounded-pill px-3 {% if emotion == 'neutral' %}btn-light text-dark{% else %}btn-outline-secondary{% endif %}">Neutral</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracks Grid -->
+    <div class="col-12">
+      {% if tracks %}
+        <div class="row g-4">
+          {% for track in tracks %}
+            <div class="col-sm-6 col-md-4 col-lg-3">
+              <div class="spotify-track-card" id="trackCard-{{ track.id }}">
+                <div class="track-art-wrapper">
+                  <img src="{{ track.album_art }}" alt="{{ track.name }}" loading="lazy">
+                </div>
+                <div class="track-info">
+                  <div>
+                    <div class="track-title" title="{{ track.name }}">{{ track.name }}</div>
+                    <div class="track-artist" title="{{ track.artist }}">{{ track.artist }}</div>
+                  </div>
+                  <!-- Embedded Spotify Player Widget -->
+                  <div class="track-embed-wrapper mt-2">
+                    <iframe src="{{ track.embed_url }}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 8px;"></iframe>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25 small">
+                    <span class="text-muted smaller text-truncate" style="max-width: 130px;">{{ track.album }}</span>
+                    <a href="{{ track.spotify_url }}" target="_blank" rel="noopener" class="text-success text-decoration-none fw-bold small">
+                      Spotify <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="glass-panel p-5 text-center">
+          <i class="fa-solid fa-music text-muted mb-3" style="font-size: 3rem; opacity: 0.4;"></i>
+          <h5 class="fw-bold text-light mb-1">No Songs Found for this Mood</h5>
+          <p class="text-muted small mb-3">Try refreshing or exploring another emotional state from the switcher above.</p>
+          <a href="{% url 'showlive' %}" class="btn btn-outline-success rounded-pill px-4">
+            <i class="fa-solid fa-camera me-1"></i> Scan Camera Again
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>
-{% endif %}
-
-<script>
-    var audio = document.getElementById("smedia");
-    var play = document.getElementById("play-button");
-    var pause = document.getElementById("pause-button");
-
-    function playAudio() {
-    audio.play();
-    play.style.display = "none";
-    pause.style.display = "block";
-    }
-
-    function pauseAudio() {
-    audio.pause();
-    pause.style.display = "none";
-    play.style.display = "block";
-    }
-</script>
-
-<div>
-{% if img.image %}
-
-<img src="{{img.image.url}}" alt="testing">
-
-{% endif %}
-</div>
-
 {% endblock %}
